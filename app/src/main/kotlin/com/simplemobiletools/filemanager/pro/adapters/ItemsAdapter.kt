@@ -35,7 +35,6 @@ import com.simplemobiletools.commons.views.MyRecyclerView
 import com.simplemobiletools.filemanager.pro.R
 import com.simplemobiletools.filemanager.pro.activities.MainActivity
 import com.simplemobiletools.filemanager.pro.activities.SimpleActivity
-import com.simplemobiletools.filemanager.pro.dialogs.CompressAsDialog
 import com.simplemobiletools.filemanager.pro.extensions.*
 import com.simplemobiletools.filemanager.pro.helpers.*
 import com.simplemobiletools.filemanager.pro.interfaces.ItemOperationsListener
@@ -108,7 +107,6 @@ class ItemsAdapter(activity: SimpleActivity, var listItems: MutableList<ListItem
             R.id.cab_open_as -> openAs()
             R.id.cab_copy_to -> copyMoveTo(true)
             R.id.cab_move_to -> tryMoveFiles()
-            R.id.cab_compress -> compressSelection()
             R.id.cab_decompress -> decompressSelection()
             R.id.cab_select_all -> selectAll()
             R.id.cab_delete -> askConfirmDelete()
@@ -388,37 +386,6 @@ class ItemsAdapter(activity: SimpleActivity, var listItems: MutableList<ListItem
                 activity.runOnUiThread {
                     listener?.refreshItems()
                     finishActMode()
-                }
-            }
-        }
-    }
-
-    private fun compressSelection() {
-        val firstPath = getFirstSelectedItemPath()
-        if (activity.isPathOnOTG(firstPath)) {
-            activity.toast(R.string.unknown_error_occurred)
-            return
-        }
-
-        CompressAsDialog(activity, firstPath) {
-            val destination = it
-            activity.handleSAFDialog(firstPath) {
-                if (!it) {
-                    return@handleSAFDialog
-                }
-
-                activity.toast(R.string.compressing)
-                val paths = getSelectedFileDirItems().map { it.path }
-                ensureBackgroundThread {
-                    if (compressPaths(paths, destination)) {
-                        activity.runOnUiThread {
-                            activity.toast(R.string.compression_successful)
-                            listener?.refreshItems()
-                            finishActMode()
-                        }
-                    } else {
-                        activity.toast(R.string.compressing_failed)
-                    }
                 }
             }
         }

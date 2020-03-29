@@ -18,7 +18,6 @@ import com.simplemobiletools.filemanager.pro.R
 import com.simplemobiletools.filemanager.pro.activities.MainActivity
 import com.simplemobiletools.filemanager.pro.activities.SimpleActivity
 import com.simplemobiletools.filemanager.pro.adapters.ItemsAdapter
-import com.simplemobiletools.filemanager.pro.dialogs.CreateNewItemDialog
 import com.simplemobiletools.filemanager.pro.extensions.config
 import com.simplemobiletools.filemanager.pro.extensions.isPathOnRoot
 import com.simplemobiletools.filemanager.pro.extensions.tryOpenPathIntent
