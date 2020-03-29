@@ -16,13 +16,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <com.simplemobiletools.commons.views.Breadcrumbs
+            <com.simplemobiletools.filemanager.pro.views.Breadcrumbs
                 android:id="@+id/breadcrumbs"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="@dimen/activity_margin"/>
 
-            <com.simplemobiletools.commons.views.MyTextView
+            <com.simplemobiletools.filemanager.pro.views.MyTextView
                 android:id="@+id/items_placeholder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -35,7 +35,7 @@
                 android:textSize="@dimen/bigger_text_size"
                 android:visibility="gone"/>
 
-            <com.simplemobiletools.commons.views.MyTextView
+            <com.simplemobiletools.filemanager.pro.views.MyTextView
                 android:id="@+id/items_placeholder_2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -48,16 +48,16 @@
                 android:textSize="@dimen/bigger_text_size"
                 android:visibility="gone"/>
 
-            <com.simplemobiletools.commons.views.MyRecyclerView
+            <com.simplemobiletools.filemanager.pro.views.MyRecyclerView
                 android:id="@+id/items_list"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_below="@+id/breadcrumbs"
                 android:clipToPadding="false"
                 android:scrollbars="none"
-                app:layoutManager="com.simplemobiletools.commons.views.MyLinearLayoutManager"/>
+                app:layoutManager="com.simplemobiletools.filemanager.pro.views.MyLinearLayoutManager"/>
 
-            <com.simplemobiletools.commons.views.FastScroller
+            <com.simplemobiletools.filemanager.pro.views.FastScroller
                 android:id="@+id/items_fastscroller"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
@@ -67,7 +67,7 @@
 
                 <include layout="@layout/fastscroller_handle_vertical"/>
 
-            </com.simplemobiletools.commons.views.FastScroller>
+            </com.simplemobiletools.filemanager.pro.views.FastScroller>
         </RelativeLayout>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

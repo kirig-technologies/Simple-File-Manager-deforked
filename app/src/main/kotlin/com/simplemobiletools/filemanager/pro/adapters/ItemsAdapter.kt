@@ -21,23 +21,21 @@ import com.bumptech.glide.load.DecodeFormat
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
-import com.simplemobiletools.commons.adapters.MyRecyclerViewAdapter
-import com.simplemobiletools.commons.dialogs.*
-import com.simplemobiletools.commons.extensions.*
-import com.simplemobiletools.commons.helpers.ensureBackgroundThread
-import com.simplemobiletools.commons.helpers.isOreoPlus
-import com.simplemobiletools.commons.models.FileDirItem
-import com.simplemobiletools.commons.models.RadioItem
-import com.simplemobiletools.commons.views.FastScroller
-import com.simplemobiletools.commons.views.MyRecyclerView
+import com.simplemobiletools.filemanager.pro.helpers.ensureBackgroundThread
+import com.simplemobiletools.filemanager.pro.helpers.isOreoPlus
+import com.simplemobiletools.filemanager.pro.models.FileDirItem
+import com.simplemobiletools.filemanager.pro.models.RadioItem
+import com.simplemobiletools.filemanager.pro.views.FastScroller
 import com.simplemobiletools.filemanager.pro.R
 import com.simplemobiletools.filemanager.pro.activities.MainActivity
 import com.simplemobiletools.filemanager.pro.activities.SimpleActivity
+import com.simplemobiletools.filemanager.pro.dialogs.PropertiesDialog
 import com.simplemobiletools.filemanager.pro.extensions.*
 import com.simplemobiletools.filemanager.pro.helpers.*
 import com.simplemobiletools.filemanager.pro.interfaces.ItemOperationsListener
 import com.simplemobiletools.filemanager.pro.models.ListItem
-import com.stericson.RootTools.RootTools
+import com.simplemobiletools.filemanager.pro.views.Breadcrumbs
+import com.simplemobiletools.filemanager.pro.views.MyRecyclerView
 import kotlinx.android.synthetic.main.item_list_file_dir.view.*
 import kotlinx.android.synthetic.main.item_list_section.view.*
 import java.io.File
@@ -71,10 +69,6 @@ class ItemsAdapter(activity: SimpleActivity, var listItems: MutableList<ListItem
         menu.apply {
             findItem(R.id.cab_confirm_selection).isVisible = isPickMultipleIntent
             findItem(R.id.cab_copy_path).isVisible = isOneItemSelected()
-            findItem(R.id.cab_open_with).isVisible = isOneFileSelected()
-            findItem(R.id.cab_open_as).isVisible = isOneFileSelected()
-            findItem(R.id.cab_set_as).isVisible = isOneFileSelected()
-            findItem(R.id.cab_create_shortcut).isVisible = isOreoPlus() && isOneItemSelected()
 
             checkHideBtnVisibility(this)
         }
@@ -87,20 +81,12 @@ class ItemsAdapter(activity: SimpleActivity, var listItems: MutableList<ListItem
 
         when (id) {
             R.id.cab_confirm_selection -> confirmSelection()
-            R.id.cab_rename -> displayRenameDialog()
             R.id.cab_properties -> showProperties()
             R.id.cab_share -> shareFiles()
             R.id.cab_hide -> toggleFileVisibility(true)
             R.id.cab_unhide -> toggleFileVisibility(false)
-            R.id.cab_create_shortcut -> createShortcut()
             R.id.cab_copy_path -> copyPath()
-            R.id.cab_set_as -> setAs()
-            R.id.cab_open_with -> openWith()
-            R.id.cab_open_as -> openAs()
-            R.id.cab_copy_to -> copyMoveTo(true)
-            R.id.cab_move_to -> tryMoveFiles()
             R.id.cab_select_all -> selectAll()
-            R.id.cab_delete -> askConfirmDelete()
         }
     }
 
@@ -176,35 +162,6 @@ class ItemsAdapter(activity: SimpleActivity, var listItems: MutableList<ListItem
         }
     }
 
-    private fun displayRenameDialog() {
-        val fileDirItems = getSelectedFileDirItems()
-        val paths = fileDirItems.asSequence().map { it.path }.toMutableList() as ArrayList<String>
-        when {
-            paths.size == 1 -> {
-                val oldPath = paths.first()
-                RenameItemDialog(activity, oldPath) {
-                    activity.config.moveFavorite(oldPath, it)
-                    activity.runOnUiThread {
-                        listener?.refreshItems()
-                        finishActMode()
-                    }
-                }
-            }
-            fileDirItems.any { it.isDirectory } -> RenameItemsDialog(activity, paths) {
-                activity.runOnUiThread {
-                    listener?.refreshItems()
-                    finishActMode()
-                }
-            }
-            else -> RenameDialog(activity, paths) {
-                activity.runOnUiThread {
-                    listener?.refreshItems()
-                    finishActMode()
-                }
-            }
-        }
-    }
-
     private fun showProperties() {
         if (selectedKeys.size <= 1) {
             PropertiesDialog(activity, getFirstSelectedItemPath(), activity.config.shouldShowHidden)
@@ -231,29 +188,6 @@ class ItemsAdapter(activity: SimpleActivity, var listItems: MutableList<ListItem
             activity.runOnUiThread {
                 listener?.refreshItems()
                 finishActMode()
-            }
-        }
-    }
-
-    @SuppressLint("NewApi")
-    private fun createShortcut() {
-        val manager = activity.getSystemService(ShortcutManager::class.java)
-        if (manager.isRequestPinShortcutSupported) {
-            val path = getFirstSelectedItemPath()
-            val drawable = resources.getDrawable(R.drawable.shortcut_folder).mutate()
-            getShortcutImage(path, drawable) {
-                val intent = Intent(activity, MainActivity::class.java)
-                intent.action = Intent.ACTION_VIEW
-                intent.flags = intent.flags or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NO_HISTORY
-                intent.data = Uri.fromFile(File(path))
-
-                val shortcut = ShortcutInfo.Builder(activity, path)
-                        .setShortLabel(path.getFilenameFromPath())
-                        .setIcon(Icon.createWithBitmap(drawable.convertToBitmap()))
-                        .setIntent(intent)
-                        .build()
-
-                manager.requestPinShortcut(shortcut, null)
             }
         }
     }
@@ -317,117 +251,6 @@ class ItemsAdapter(activity: SimpleActivity, var listItems: MutableList<ListItem
         (activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(clip)
         finishActMode()
         activity.toast(R.string.path_copied)
-    }
-
-    private fun setAs() {
-        activity.setAs(getFirstSelectedItemPath())
-    }
-
-    private fun openWith() {
-        activity.tryOpenPathIntent(getFirstSelectedItemPath(), true)
-    }
-
-    private fun openAs() {
-        val res = activity.resources
-        val items = arrayListOf(
-                RadioItem(OPEN_AS_TEXT, res.getString(R.string.text_file)),
-                RadioItem(OPEN_AS_IMAGE, res.getString(R.string.image_file)),
-                RadioItem(OPEN_AS_AUDIO, res.getString(R.string.audio_file)),
-                RadioItem(OPEN_AS_VIDEO, res.getString(R.string.video_file)),
-                RadioItem(OPEN_AS_OTHER, res.getString(R.string.other_file)))
-
-        RadioGroupDialog(activity, items) {
-            activity.tryOpenPathIntent(getFirstSelectedItemPath(), false, it as Int)
-        }
-    }
-
-    private fun tryMoveFiles() {
-        activity.handleDeletePasswordProtection {
-            copyMoveTo(false)
-        }
-    }
-
-    private fun copyMoveTo(isCopyOperation: Boolean) {
-        val files = getSelectedFileDirItems()
-        val firstFile = files[0]
-        val source = if (firstFile.isDirectory) firstFile.path else firstFile.getParentPath()
-        FilePickerDialog(activity, source, false, activity.config.shouldShowHidden, true, true) {
-            if (activity.isPathOnRoot(it) || activity.isPathOnRoot(firstFile.path)) {
-                copyMoveRootItems(files, it, isCopyOperation)
-            } else {
-                activity.copyMoveFilesTo(files, source, it, isCopyOperation, false, activity.config.shouldShowHidden) {
-                    listener?.refreshItems()
-                    finishActMode()
-                }
-            }
-        }
-    }
-
-    private fun copyMoveRootItems(files: ArrayList<FileDirItem>, destinationPath: String, isCopyOperation: Boolean) {
-        activity.toast(R.string.copying)
-        ensureBackgroundThread {
-            val fileCnt = files.size
-            RootHelpers(activity).copyMoveFiles(files, destinationPath, isCopyOperation) {
-                when (it) {
-                    fileCnt -> activity.toast(R.string.copying_success)
-                    0 -> activity.toast(R.string.copy_failed)
-                    else -> activity.toast(R.string.copying_success_partial)
-                }
-
-                activity.runOnUiThread {
-                    listener?.refreshItems()
-                    finishActMode()
-                }
-            }
-        }
-    }
-
-    private fun askConfirmDelete() {
-        activity.handleDeletePasswordProtection {
-            val selectionSize = selectedKeys.size
-            val items = resources.getQuantityString(R.plurals.delete_items, selectionSize, selectionSize)
-            val question = String.format(resources.getString(R.string.deletion_confirmation), items)
-            ConfirmationDialog(activity, question) {
-                deleteFiles()
-            }
-        }
-    }
-
-    private fun deleteFiles() {
-        if (selectedKeys.isEmpty()) {
-            return
-        }
-
-        val SAFPath = getFirstSelectedItemPath()
-        if (activity.isPathOnRoot(SAFPath) && !RootTools.isRootAvailable()) {
-            activity.toast(R.string.rooted_device_only)
-            return
-        }
-
-        activity.handleSAFDialog(SAFPath) {
-            if (!it) {
-                return@handleSAFDialog
-            }
-
-            val files = ArrayList<FileDirItem>(selectedKeys.size)
-            val positions = ArrayList<Int>()
-            selectedKeys.forEach {
-                activity.config.removeFavorite(getItemWithKey(it)?.path ?: "")
-                val key = it
-                val position = listItems.indexOfFirst { it.path.hashCode() == key }
-                if (position != -1) {
-                    positions.add(position)
-                    files.add(listItems[position])
-                }
-            }
-
-            positions.sortDescending()
-            removeSelectedItems(positions)
-            listener?.deleteFiles(files)
-            positions.forEach {
-                listItems.removeAt(it)
-            }
-        }
     }
 
     private fun getFirstSelectedItemPath() = getSelectedFileDirItems().first().path

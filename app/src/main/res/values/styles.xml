@@ -2,4 +2,35 @@
 
     <style name="AppTheme" parent="AppTheme.Base"/>
 
+    <style name="AppTheme.Base" parent="Theme.AppCompat">
+        <item name="colorPrimary">@color/color_primary</item>
+        <item name="colorPrimaryDark">@color/color_primary_dark</item>
+        <item name="colorAccent">@color/color_accent</item>
+        <item name="android:spinnerItemStyle">@style/SpinnerItem</item>
+        <item name="spinnerDropDownItemStyle">@style/SpinnerItem.DropDownItem</item>
+        <item name="android:spinnerDropDownItemStyle">@style/SpinnerItem.DropDownItem</item>
+        <item name="buttonStyle">@style/MyTransparentButton</item>
+        <item name="android:buttonStyle">@style/MyTransparentButton</item>
+        <item name="android:itemBackground">@color/default_background_color</item>
+        <item name="android:textColor">@color/default_text_color</item>
+    </style>
+
+    <style name="SpinnerItem" parent="@android:style/Widget.TextView">
+        <item name="android:paddingRight">@dimen/activity_margin</item>
+    </style>
+
+    <style name="SpinnerItem.DropDownItem" parent="@android:style/Widget.TextView">
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingTop">@dimen/medium_margin</item>
+        <item name="android:paddingBottom">@dimen/medium_margin</item>
+        <item name="android:paddingLeft">@dimen/activity_margin</item>
+        <item name="android:paddingRight">@dimen/activity_margin</item>
+    </style>
+
+    <style name="MyTransparentButton" parent="Widget.AppCompat.Button">
+        <item name="android:textColor">@android:color/white</item>
+        <item name="background">@drawable/transparent_button</item>
+        <item name="android:background">@drawable/transparent_button</item>
+    </style>
+
 </resources>

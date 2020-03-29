@@ -1,8 +1,6 @@
 package com.simplemobiletools.filemanager.pro.extensions
 
 import android.content.Context
-import com.simplemobiletools.commons.extensions.isPathOnOTG
-import com.simplemobiletools.commons.extensions.isPathOnSD
 import com.simplemobiletools.filemanager.pro.helpers.Config
 
 import android.Manifest
@@ -28,27 +26,21 @@ import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.view.View
-import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.loader.content.CursorLoader
-import com.github.ajalt.reprint.core.Reprint
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import com.simplemobiletools.commons.R
-import com.simplemobiletools.commons.helpers.*
-import com.simplemobiletools.commons.helpers.MyContentProvider.Companion.COL_APP_ICON_COLOR
-import com.simplemobiletools.commons.helpers.MyContentProvider.Companion.COL_BACKGROUND_COLOR
-import com.simplemobiletools.commons.helpers.MyContentProvider.Companion.COL_LAST_UPDATED_TS
-import com.simplemobiletools.commons.helpers.MyContentProvider.Companion.COL_NAVIGATION_BAR_COLOR
-import com.simplemobiletools.commons.helpers.MyContentProvider.Companion.COL_PRIMARY_COLOR
-import com.simplemobiletools.commons.helpers.MyContentProvider.Companion.COL_TEXT_COLOR
-import com.simplemobiletools.commons.models.AlarmSound
-import com.simplemobiletools.commons.models.SharedTheme
-import com.simplemobiletools.commons.views.*
+import com.simplemobiletools.filemanager.pro.helpers.*
+import com.simplemobiletools.filemanager.pro.helpers.MyContentProvider.Companion.COL_BACKGROUND_COLOR
+import com.simplemobiletools.filemanager.pro.helpers.MyContentProvider.Companion.COL_LAST_UPDATED_TS
+import com.simplemobiletools.filemanager.pro.helpers.MyContentProvider.Companion.COL_NAVIGATION_BAR_COLOR
+import com.simplemobiletools.filemanager.pro.helpers.MyContentProvider.Companion.COL_PRIMARY_COLOR
+import com.simplemobiletools.filemanager.pro.helpers.MyContentProvider.Companion.COL_TEXT_COLOR
+import com.simplemobiletools.filemanager.pro.helpers.MyContentProvider.Companion.COL_APP_ICON_COLOR
+import com.simplemobiletools.filemanager.pro.R
+import com.simplemobiletools.filemanager.pro.models.SharedTheme
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -56,37 +48,6 @@ import java.util.*
 fun Context.getSharedPrefs() = getSharedPreferences(PREFS_KEY, Context.MODE_PRIVATE)
 
 val Context.isRTLLayout: Boolean get() = resources.configuration.layoutDirection == View.LAYOUT_DIRECTION_RTL
-
-fun Context.updateTextColors(viewGroup: ViewGroup, tmpTextColor: Int = 0, tmpAccentColor: Int = 0) {
-    val textColor = if (tmpTextColor == 0) baseConfig.textColor else tmpTextColor
-    val backgroundColor = baseConfig.backgroundColor
-    val accentColor = if (tmpAccentColor == 0) {
-        if (isBlackAndWhiteTheme()) {
-            Color.WHITE
-        } else {
-            baseConfig.primaryColor
-        }
-    } else {
-        tmpAccentColor
-    }
-
-    val cnt = viewGroup.childCount
-    (0 until cnt).map { viewGroup.getChildAt(it) }
-            .forEach {
-                when (it) {
-                    is MyTextView -> it.setColors(textColor, accentColor, backgroundColor)
-                    is MyAppCompatSpinner -> it.setColors(textColor, accentColor, backgroundColor)
-                    is MySwitchCompat -> it.setColors(textColor, accentColor, backgroundColor)
-                    is MyCompatRadioButton -> it.setColors(textColor, accentColor, backgroundColor)
-                    is MyAppCompatCheckbox -> it.setColors(textColor, accentColor, backgroundColor)
-                    is MyEditText -> it.setColors(textColor, accentColor, backgroundColor)
-                    is MyFloatingActionButton -> it.setColors(textColor, accentColor, backgroundColor)
-                    is MySeekBar -> it.setColors(textColor, accentColor, backgroundColor)
-                    is MyButton -> it.setColors(textColor, accentColor, backgroundColor)
-                    is ViewGroup -> updateTextColors(it, textColor, accentColor)
-                }
-            }
-}
 
 fun Context.getLinkTextColor(): Int {
     return if (baseConfig.primaryColor == resources.getColor(R.color.color_primary)) {
@@ -146,7 +107,6 @@ val Context.sdCardPath: String get() = baseConfig.sdCardPath
 val Context.internalStoragePath: String get() = baseConfig.internalStoragePath
 val Context.otgPath: String get() = baseConfig.OTGPath
 
-fun Context.isFingerPrintSensorAvailable() = isMarshmallowPlus() && Reprint.isHardwarePresent()
 
 fun Context.getLatestMediaId(uri: Uri = MediaStore.Files.getContentUri("external")): Long {
     val MAX_VALUE = "max_value"
@@ -395,7 +355,6 @@ fun Context.getSharedThemeSync(cursorLoader: CursorLoader): SharedTheme? {
 
 fun Context.getMyContentProviderCursorLoader() = CursorLoader(this, MyContentProvider.MY_CONTENT_URI, null, null, null, null)
 
-fun Context.getDialogTheme() = if (baseConfig.backgroundColor.getContrastColor() == Color.WHITE) R.style.MyDialogTheme_Dark else R.style.MyDialogTheme
 
 fun Context.getCurrentFormattedDateTime(): String {
     val simpleDateFormat = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.getDefault())
@@ -528,16 +487,6 @@ fun Context.getFormattedSeconds(seconds: Int, showBefore: Boolean = true) = when
 
 fun Context.getDefaultAlarmUri(type: Int) = RingtoneManager.getDefaultUri(if (type == ALARM_SOUND_TYPE_NOTIFICATION) RingtoneManager.TYPE_NOTIFICATION else RingtoneManager.TYPE_ALARM)
 
-fun Context.getDefaultAlarmTitle(type: Int): String {
-    val alarmString = getString(R.string.alarm)
-    return try {
-        RingtoneManager.getRingtone(this, getDefaultAlarmUri(type))?.getTitle(this) ?: alarmString
-    } catch (e: Exception) {
-        alarmString
-    }
-}
-
-fun Context.getDefaultAlarmSound(type: Int) = AlarmSound(0, getDefaultAlarmTitle(type), getDefaultAlarmUri(type).toString())
 
 fun Context.grantReadUriPermission(uriString: String) {
     try {
@@ -545,29 +494,6 @@ fun Context.grantReadUriPermission(uriString: String) {
         grantUriPermission("com.android.systemui", Uri.parse(uriString), Intent.FLAG_GRANT_READ_URI_PERMISSION)
     } catch (ignored: Exception) {
     }
-}
-
-fun Context.storeNewYourAlarmSound(resultData: Intent): AlarmSound {
-    val uri = resultData.data
-    var filename = getFilenameFromUri(uri!!)
-    if (filename.isEmpty()) {
-        filename = getString(R.string.alarm)
-    }
-
-    val token = object : TypeToken<ArrayList<AlarmSound>>() {}.type
-    val yourAlarmSounds = Gson().fromJson<ArrayList<AlarmSound>>(baseConfig.yourAlarmSounds, token) ?: ArrayList()
-    val newAlarmSoundId = (yourAlarmSounds.maxBy { it.id }?.id ?: YOUR_ALARM_SOUNDS_MIN_ID) + 1
-    val newAlarmSound = AlarmSound(newAlarmSoundId, filename, uri.toString())
-    if (yourAlarmSounds.firstOrNull { it.uri == uri.toString() } == null) {
-        yourAlarmSounds.add(newAlarmSound)
-    }
-
-    baseConfig.yourAlarmSounds = Gson().toJson(yourAlarmSounds)
-
-    val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-    contentResolver.takePersistableUriPermission(uri, takeFlags)
-
-    return newAlarmSound
 }
 
 @RequiresApi(Build.VERSION_CODES.N)
@@ -594,21 +520,6 @@ fun Context.saveExifRotation(exif: ExifInterface, degrees: Int) {
     exif.saveAttributes()
 }
 
-fun Context.checkAppIconColor() {
-    val appId = baseConfig.appId
-    if (appId.isNotEmpty() && baseConfig.lastIconColor != baseConfig.appIconColor) {
-        getAppIconColors().forEachIndexed { index, color ->
-            toggleAppIconColor(appId, index, color, false)
-        }
-
-        getAppIconColors().forEachIndexed { index, color ->
-            if (baseConfig.appIconColor == color) {
-                toggleAppIconColor(appId, index, color, true)
-            }
-        }
-    }
-}
-
 fun Context.toggleAppIconColor(appId: String, colorIndex: Int, color: Int, enable: Boolean) {
     val className = "${appId.removeSuffix(".debug")}.activities.SplashActivity${appIconColorStrings[colorIndex]}"
     val state = if (enable) PackageManager.COMPONENT_ENABLED_STATE_ENABLED else PackageManager.COMPONENT_ENABLED_STATE_DISABLED
@@ -620,8 +531,6 @@ fun Context.toggleAppIconColor(appId: String, colorIndex: Int, color: Int, enabl
     } catch (e: Exception) {
     }
 }
-
-fun Context.getAppIconColors() = resources.getIntArray(R.array.md_app_icon_colors).toCollection(ArrayList())
 
 fun Context.getLaunchIntent() = packageManager.getLaunchIntentForPackage(baseConfig.appId)
 
@@ -670,13 +579,6 @@ fun Context.getVideoResolution(path: String): Point? {
 }
 
 fun Context.getStringsPackageName() = getString(R.string.package_name)
-
-fun Context.getFontSizeText() = getString(when (baseConfig.fontSize) {
-    FONT_SIZE_SMALL -> R.string.small
-    FONT_SIZE_MEDIUM -> R.string.medium
-    FONT_SIZE_LARGE -> R.string.large
-    else -> R.string.extra_large
-})
 
 fun Context.getTextSize() = when (baseConfig.fontSize) {
     FONT_SIZE_SMALL -> resources.getDimension(R.dimen.smaller_text_size)

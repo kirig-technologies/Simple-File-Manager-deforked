@@ -1,8 +1,7 @@
 package com.simplemobiletools.filemanager.pro.helpers
 
 import android.content.Context
-import com.simplemobiletools.commons.extensions.getInternalStoragePath
-import com.simplemobiletools.commons.helpers.BaseConfig
+import com.simplemobiletools.filemanager.pro.extensions.getInternalStoragePath
 import java.io.File
 
 class Config(context: Context) : BaseConfig(context) {

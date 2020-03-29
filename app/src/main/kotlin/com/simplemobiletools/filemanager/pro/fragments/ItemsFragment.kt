@@ -6,25 +6,22 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.simplemobiletools.commons.activities.BaseSimpleActivity
-import com.simplemobiletools.commons.dialogs.StoragePickerDialog
-import com.simplemobiletools.commons.extensions.*
-import com.simplemobiletools.commons.helpers.SORT_BY_SIZE
-import com.simplemobiletools.commons.helpers.ensureBackgroundThread
-import com.simplemobiletools.commons.models.FileDirItem
-import com.simplemobiletools.commons.views.Breadcrumbs
-import com.simplemobiletools.commons.views.MyLinearLayoutManager
+import com.simplemobiletools.filemanager.pro.views.Breadcrumbs
 import com.simplemobiletools.filemanager.pro.R
+import com.simplemobiletools.filemanager.pro.activities.BaseSimpleActivity
 import com.simplemobiletools.filemanager.pro.activities.MainActivity
 import com.simplemobiletools.filemanager.pro.activities.SimpleActivity
 import com.simplemobiletools.filemanager.pro.adapters.ItemsAdapter
-import com.simplemobiletools.filemanager.pro.extensions.config
-import com.simplemobiletools.filemanager.pro.extensions.isPathOnRoot
-import com.simplemobiletools.filemanager.pro.extensions.tryOpenPathIntent
+import com.simplemobiletools.filemanager.pro.dialogs.StoragePickerDialog
+import com.simplemobiletools.filemanager.pro.extensions.*
 import com.simplemobiletools.filemanager.pro.helpers.PATH
 import com.simplemobiletools.filemanager.pro.helpers.RootHelpers
+import com.simplemobiletools.filemanager.pro.helpers.SORT_BY_SIZE
+import com.simplemobiletools.filemanager.pro.helpers.ensureBackgroundThread
 import com.simplemobiletools.filemanager.pro.interfaces.ItemOperationsListener
+import com.simplemobiletools.filemanager.pro.models.FileDirItem
 import com.simplemobiletools.filemanager.pro.models.ListItem
+import com.simplemobiletools.filemanager.pro.views.MyLinearLayoutManager
 import kotlinx.android.synthetic.main.items_fragment.view.*
 import java.io.File
 import java.util.*
@@ -79,13 +76,11 @@ class ItemsFragment : Fragment(), ItemOperationsListener, Breadcrumbs.Breadcrumb
 
     override fun onResume() {
         super.onResume()
-        context!!.updateTextColors(mView as ViewGroup)
         mView.items_fastscroller.updatePrimaryColor()
         val newTextColor = context!!.config.textColor
         if (storedTextColor != newTextColor) {
             storedItems = ArrayList()
             getRecyclerAdapter()?.apply {
-                updateTextColor(newTextColor)
                 initDrawables()
             }
             mView.breadcrumbs.updateColor(newTextColor)
@@ -165,7 +160,8 @@ class ItemsFragment : Fragment(), ItemOperationsListener, Breadcrumbs.Breadcrumb
 
                 items_fastscroller.allowBubbleDisplay = true
                 items_fastscroller.setViews(items_list, mView.items_swipe_refresh) {
-                    items_fastscroller.updateBubbleText(storedItems.getOrNull(it)?.getBubbleText(context) ?: "")
+                    items_fastscroller.updateBubbleText(storedItems.getOrNull(it)?.getBubbleText(context)
+                            ?: "")
                 }
 
                 getRecyclerLayoutManager().onRestoreInstanceState(scrollStates[currentPath])

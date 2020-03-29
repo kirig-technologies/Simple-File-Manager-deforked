@@ -9,13 +9,10 @@ import android.os.StatFs
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.TextUtils
-import android.text.style.BackgroundColorSpan
 import android.text.style.ForegroundColorSpan
 import android.widget.TextView
-import androidx.core.graphics.ColorUtils
 import com.bumptech.glide.signature.ObjectKey
-import com.simplemobiletools.commons.helpers.*
-import com.simplemobiletools.commons.views.MyEditText
+import com.simplemobiletools.filemanager.pro.helpers.*
 import java.io.File
 import java.text.Normalizer
 import java.util.*

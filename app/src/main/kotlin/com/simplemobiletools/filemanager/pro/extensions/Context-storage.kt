@@ -13,9 +13,9 @@ import android.provider.MediaStore
 import android.text.TextUtils
 import androidx.core.content.FileProvider
 import androidx.documentfile.provider.DocumentFile
-import com.simplemobiletools.commons.R
-import com.simplemobiletools.commons.helpers.*
-import com.simplemobiletools.commons.models.FileDirItem
+import com.simplemobiletools.filemanager.pro.R
+import com.simplemobiletools.filemanager.pro.helpers.*
+import com.simplemobiletools.filemanager.pro.models.FileDirItem
 import java.io.File
 import java.net.URLDecoder
 import java.util.*

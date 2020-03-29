@@ -2,7 +2,7 @@ package com.simplemobiletools.filemanager.pro.extensions
 
 import android.content.Context
 import com.simplemobiletools.filemanager.pro.helpers.*
-import com.simplemobiletools.commons.models.FileDirItem
+import com.simplemobiletools.filemanager.pro.models.FileDirItem
 import java.io.File
 
 fun File.isMediaFile() = absolutePath.isMediaFile()

@@ -1,6 +1,6 @@
 package com.simplemobiletools.filemanager.pro.interfaces
 
-import com.simplemobiletools.commons.models.FileDirItem
+import com.simplemobiletools.filemanager.pro.models.FileDirItem
 import java.util.*
 
 interface ItemOperationsListener {

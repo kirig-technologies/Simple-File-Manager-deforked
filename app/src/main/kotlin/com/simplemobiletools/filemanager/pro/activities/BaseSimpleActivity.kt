@@ -1,0 +1,252 @@
+package com.simplemobiletools.filemanager.pro.activities
+
+import android.app.Activity
+import android.app.ActivityManager
+import android.content.Context
+import android.content.Intent
+import android.graphics.BitmapFactory
+import android.graphics.drawable.ColorDrawable
+import android.net.Uri
+import android.os.Bundle
+import android.provider.DocumentsContract
+import android.view.Menu
+import android.view.MenuItem
+import android.view.WindowManager
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.util.Pair
+import com.simplemobiletools.filemanager.pro.R
+import com.simplemobiletools.filemanager.pro.dialogs.WritePermissionDialog
+import com.simplemobiletools.filemanager.pro.extensions.baseConfig
+import com.simplemobiletools.filemanager.pro.extensions.*
+import com.simplemobiletools.filemanager.pro.helpers.*
+import java.io.File
+import java.io.OutputStream
+import java.util.*
+import java.util.regex.Pattern
+
+abstract class BaseSimpleActivity : AppCompatActivity() {
+    var copyMoveCallback: ((destinationPath: String) -> Unit)? = null
+    var actionOnPermission: ((granted: Boolean) -> Unit)? = null
+    var isAskingPermissions = false
+    var useDynamicTheme = true
+    var checkedDocumentPath = ""
+    var configItemsToExport = LinkedHashMap<String, Any>()
+
+    private val GENERIC_PERM_HANDLER = 100
+
+    companion object {
+        var funAfterSAFPermission: ((success: Boolean) -> Unit)? = null
+    }
+
+    abstract fun getAppIconIDs(): ArrayList<Int>
+
+    abstract fun getAppLauncherName(): String
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateActionbarColor()
+        updateNavigationBarColor()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        actionOnPermission = null
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        funAfterSAFPermission = null
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> finish()
+            else -> return super.onOptionsItemSelected(item)
+        }
+        return true
+    }
+
+    override fun attachBaseContext(newBase: Context) {
+        if (newBase.baseConfig.useEnglish) {
+            super.attachBaseContext(MyContextWrapper(newBase).wrap(newBase, "en"))
+        } else {
+            super.attachBaseContext(newBase)
+        }
+    }
+
+    fun updateBackgroundColor(color: Int = baseConfig.backgroundColor) {
+        window.decorView.setBackgroundColor(color)
+    }
+
+    fun updateActionbarColor(color: Int = baseConfig.primaryColor) {
+        supportActionBar?.setBackgroundDrawable(ColorDrawable(color))
+        updateActionBarTitle(supportActionBar?.title.toString(), color)
+        updateStatusbarColor(color)
+        setTaskDescription(ActivityManager.TaskDescription(null, null, color))
+    }
+
+    fun updateStatusbarColor(color: Int) {
+        window.statusBarColor = color.darkenColor()
+    }
+
+    fun updateNavigationBarColor(color: Int = baseConfig.navigationBarColor) {
+        if (baseConfig.navigationBarColor != INVALID_NAVIGATION_BAR_COLOR) {
+            try {
+                window.navigationBarColor = color
+            } catch (ignored: Exception) {
+            }
+        }
+    }
+
+    fun setTranslucentNavigation() {
+        window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION, WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
+        super.onActivityResult(requestCode, resultCode, resultData)
+        val partition = try {
+            checkedDocumentPath.substring(9, 18)
+        } catch (e: Exception) {
+            ""
+        }
+        val sdOtgPattern = Pattern.compile(SD_OTG_SHORT)
+
+        if (requestCode == OPEN_DOCUMENT_TREE) {
+            if (resultCode == Activity.RESULT_OK && resultData != null && resultData.data != null) {
+                val isProperPartition = partition.isEmpty() || !sdOtgPattern.matcher(partition).matches() || (sdOtgPattern.matcher(partition).matches() && resultData.dataString!!.contains(partition))
+                if (isProperSDFolder(resultData.data!!) && isProperPartition) {
+                    if (resultData.dataString == baseConfig.OTGTreeUri) {
+                        toast(R.string.sd_card_usb_same)
+                        return
+                    }
+
+                    saveTreeUri(resultData)
+                    funAfterSAFPermission?.invoke(true)
+                    funAfterSAFPermission = null
+                } else {
+                    toast(R.string.wrong_root_selected)
+                    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+                    startActivityForResult(intent, requestCode)
+                }
+            } else {
+                funAfterSAFPermission?.invoke(false)
+            }
+        } else if (requestCode == OPEN_DOCUMENT_TREE_OTG) {
+            if (resultCode == Activity.RESULT_OK && resultData != null && resultData.data != null) {
+                val isProperPartition = partition.isEmpty() || !sdOtgPattern.matcher(partition).matches() || (sdOtgPattern.matcher(partition).matches() && resultData.dataString!!.contains(partition))
+                if (isProperOTGFolder(resultData.data!!) && isProperPartition) {
+                    if (resultData.dataString == baseConfig.treeUri) {
+                        funAfterSAFPermission?.invoke(false)
+                        toast(R.string.sd_card_usb_same)
+                        return
+                    }
+                    baseConfig.OTGTreeUri = resultData.dataString!!
+                    baseConfig.OTGPartition = baseConfig.OTGTreeUri.removeSuffix("%3A").substringAfterLast('/').trimEnd('/')
+                    updateOTGPathFromPartition()
+
+                    val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    applicationContext.contentResolver.takePersistableUriPermission(resultData.data!!, takeFlags)
+
+                    funAfterSAFPermission?.invoke(true)
+                    funAfterSAFPermission = null
+                } else {
+                    toast(R.string.wrong_root_selected_usb)
+                    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+                    startActivityForResult(intent, requestCode)
+                }
+            } else {
+                funAfterSAFPermission?.invoke(false)
+            }
+        }
+    }
+
+    private fun saveTreeUri(resultData: Intent) {
+        val treeUri = resultData.data
+        baseConfig.treeUri = treeUri.toString()
+
+        val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+        applicationContext.contentResolver.takePersistableUriPermission(treeUri!!, takeFlags)
+    }
+
+    private fun isProperSDFolder(uri: Uri) = isExternalStorageDocument(uri) && isRootUri(uri) && !isInternalStorage(uri)
+
+    private fun isProperOTGFolder(uri: Uri) = isExternalStorageDocument(uri) && isRootUri(uri) && !isInternalStorage(uri)
+
+    private fun isRootUri(uri: Uri) = DocumentsContract.getTreeDocumentId(uri).endsWith(":")
+
+    private fun isInternalStorage(uri: Uri) = isExternalStorageDocument(uri) && DocumentsContract.getTreeDocumentId(uri).contains("primary")
+
+    private fun isExternalStorageDocument(uri: Uri) = "com.android.externalstorage.documents" == uri.authority
+
+    // synchronous return value determines only if we are showing the SAF dialog, callback result tells if the SD or OTG permission has been granted
+    fun handleSAFDialog(path: String, callback: (success: Boolean) -> Unit): Boolean {
+        return if (!packageName.startsWith("com.simplemobiletools")) {
+            callback(true)
+            false
+        } else if (isShowingSAFDialog(path) || isShowingOTGDialog(path)) {
+            funAfterSAFPermission = callback
+            true
+        } else {
+            callback(true)
+            false
+        }
+    }
+
+    fun handleOTGPermission(callback: (success: Boolean) -> Unit) {
+        if (baseConfig.OTGTreeUri.isNotEmpty()) {
+            callback(true)
+            return
+        }
+
+        funAfterSAFPermission = callback
+        WritePermissionDialog(this, true) {
+            Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+                if (resolveActivity(packageManager) == null) {
+                    type = "*/*"
+                }
+
+                if (resolveActivity(packageManager) != null) {
+                    startActivityForResult(this, OPEN_DOCUMENT_TREE_OTG)
+                } else {
+                    toast(R.string.unknown_error_occurred)
+                }
+            }
+        }
+    }
+
+    fun getAlternativeFile(file: File): File {
+        var fileIndex = 1
+        var newFile: File?
+        do {
+            val newName = String.format("%s(%d).%s", file.nameWithoutExtension, fileIndex, file.extension)
+            newFile = File(file.parent, newName)
+            fileIndex++
+        } while (getDoesFilePathExist(newFile!!.absolutePath))
+        return newFile
+    }
+
+    fun handlePermission(permissionId: Int, callback: (granted: Boolean) -> Unit) {
+        actionOnPermission = null
+        if (hasPermission(permissionId)) {
+            callback(true)
+        } else {
+            isAskingPermissions = true
+            actionOnPermission = callback
+            ActivityCompat.requestPermissions(this, arrayOf(getPermissionString(permissionId)), GENERIC_PERM_HANDLER)
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        isAskingPermissions = false
+        if (requestCode == GENERIC_PERM_HANDLER && grantResults.isNotEmpty()) {
+            actionOnPermission?.invoke(grantResults[0] == 0)
+        }
+    }
+}

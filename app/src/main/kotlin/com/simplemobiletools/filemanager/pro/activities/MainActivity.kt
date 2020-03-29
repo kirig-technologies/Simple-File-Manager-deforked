@@ -20,8 +20,6 @@ import com.simplemobiletools.filemanager.pro.dialogs.ChangeSortingDialog
 import com.simplemobiletools.filemanager.pro.extensions.config
 import com.simplemobiletools.filemanager.pro.extensions.tryOpenPathIntent
 import com.simplemobiletools.filemanager.pro.fragments.ItemsFragment
-import com.simplemobiletools.filemanager.pro.helpers.RootHelpers
-import com.stericson.RootTools.RootTools
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.items_fragment.view.*
 import java.io.File
@@ -52,7 +50,6 @@ class MainActivity : SimpleActivity() {
 
         if (savedInstanceState == null) {
             tryInitFileManager()
-            checkIfRootAvailable()
             checkInvalidFavorites()
         }
     }
@@ -75,19 +72,11 @@ class MainActivity : SimpleActivity() {
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu, menu)
         setupSearch(menu)
-        updateMenuItemColors(menu)
         return true
     }
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        val favorites = config.favorites
         menu!!.apply {
-            findItem(R.id.add_favorite).isVisible = !favorites.contains(fragment.currentPath)
-            findItem(R.id.remove_favorite).isVisible = favorites.contains(fragment.currentPath)
-            findItem(R.id.go_to_favorite).isVisible = favorites.isNotEmpty()
-
-            findItem(R.id.set_as_home).isVisible = fragment.currentPath != config.homeFolder
-
             findItem(R.id.temporarily_show_hidden).isVisible = !config.shouldShowHidden
             findItem(R.id.stop_showing_hidden).isVisible = config.temporarilyShowHidden
         }
@@ -99,12 +88,8 @@ class MainActivity : SimpleActivity() {
         when (item.itemId) {
             R.id.go_home -> goHome()
             R.id.sort -> showSortingDialog()
-            R.id.add_favorite -> addFavorite()
-            R.id.remove_favorite -> removeFavorite()
-            R.id.set_as_home -> setAsHome()
             R.id.temporarily_show_hidden -> tryToggleTemporarilyShowHidden()
             R.id.stop_showing_hidden -> tryToggleTemporarilyShowHidden()
-            R.id.settings -> startActivity(Intent(applicationContext, SettingsActivity::class.java))
             else -> return super.onOptionsItemSelected(item)
         }
         return true
@@ -232,19 +217,6 @@ class MainActivity : SimpleActivity() {
         }
     }
 
-    private fun addFavorite() {
-        config.addFavorite(fragment.currentPath)
-    }
-
-    private fun removeFavorite() {
-        config.removeFavorite(fragment.currentPath)
-    }
-
-    private fun setAsHome() {
-        config.homeFolder = fragment.currentPath
-        toast(R.string.home_folder_updated)
-    }
-
     private fun tryToggleTemporarilyShowHidden() {
         if (config.temporarilyShowHidden) {
             toggleTemporarilyShowHidden(false)
@@ -272,17 +244,6 @@ class MainActivity : SimpleActivity() {
         } else {
             fragment.mView.breadcrumbs.removeBreadcrumb()
             openPath(fragment.mView.breadcrumbs.getLastItem().path)
-        }
-    }
-
-    private fun checkIfRootAvailable() {
-        ensureBackgroundThread {
-            config.isRootAvailable = RootTools.isRootAvailable()
-            if (config.isRootAvailable && config.enableRootAccess) {
-                RootHelpers(this).askRootIfNeeded {
-                    config.enableRootAccess = it
-                }
-            }
         }
     }
 

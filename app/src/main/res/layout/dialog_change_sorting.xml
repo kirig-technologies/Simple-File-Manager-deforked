@@ -20,7 +20,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/medium_margin">
 
-            <com.simplemobiletools.commons.views.MyCompatRadioButton
+            <com.simplemobiletools.filemanager.pro.views.MyCompatRadioButton
                 android:id="@+id/sorting_dialog_radio_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -28,7 +28,7 @@
                 android:paddingTop="@dimen/medium_margin"
                 android:text="@string/name"/>
 
-            <com.simplemobiletools.commons.views.MyCompatRadioButton
+            <com.simplemobiletools.filemanager.pro.views.MyCompatRadioButton
                 android:id="@+id/sorting_dialog_radio_size"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -36,7 +36,7 @@
                 android:paddingTop="@dimen/medium_margin"
                 android:text="@string/size"/>
 
-            <com.simplemobiletools.commons.views.MyCompatRadioButton
+            <com.simplemobiletools.filemanager.pro.views.MyCompatRadioButton
                 android:id="@+id/sorting_dialog_radio_last_modified"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -44,7 +44,7 @@
                 android:paddingTop="@dimen/medium_margin"
                 android:text="@string/last_modified"/>
 
-            <com.simplemobiletools.commons.views.MyCompatRadioButton
+            <com.simplemobiletools.filemanager.pro.views.MyCompatRadioButton
                 android:id="@+id/sorting_dialog_radio_extension"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -64,7 +64,7 @@
             android:layout_marginTop="@dimen/medium_margin"
             android:paddingBottom="@dimen/medium_margin">
 
-            <com.simplemobiletools.commons.views.MyCompatRadioButton
+            <com.simplemobiletools.filemanager.pro.views.MyCompatRadioButton
                 android:id="@+id/sorting_dialog_radio_ascending"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -72,7 +72,7 @@
                 android:paddingTop="@dimen/medium_margin"
                 android:text="@string/ascending"/>
 
-            <com.simplemobiletools.commons.views.MyCompatRadioButton
+            <com.simplemobiletools.filemanager.pro.views.MyCompatRadioButton
                 android:id="@+id/sorting_dialog_radio_descending"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -85,7 +85,7 @@
             android:id="@+id/use_for_this_folder_divider"
             layout="@layout/divider"/>
 
-        <com.simplemobiletools.commons.views.MyAppCompatCheckbox
+        <com.simplemobiletools.filemanager.pro.views.MyAppCompatCheckbox
             android:id="@+id/sorting_dialog_use_for_this_folder"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
