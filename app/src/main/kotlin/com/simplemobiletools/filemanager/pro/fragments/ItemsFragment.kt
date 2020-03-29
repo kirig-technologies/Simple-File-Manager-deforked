@@ -15,7 +15,6 @@ import com.simplemobiletools.filemanager.pro.adapters.ItemsAdapter
 import com.simplemobiletools.filemanager.pro.dialogs.StoragePickerDialog
 import com.simplemobiletools.filemanager.pro.extensions.*
 import com.simplemobiletools.filemanager.pro.helpers.PATH
-import com.simplemobiletools.filemanager.pro.helpers.RootHelpers
 import com.simplemobiletools.filemanager.pro.helpers.SORT_BY_SIZE
 import com.simplemobiletools.filemanager.pro.helpers.ensureBackgroundThread
 import com.simplemobiletools.filemanager.pro.interfaces.ItemOperationsListener
@@ -188,8 +187,6 @@ class ItemsFragment : Fragment(), ItemOperationsListener, Breadcrumbs.Breadcrumb
                     }
                 } else if (!config.enableRootAccess || !context!!.isPathOnRoot(path)) {
                     getRegularItemsOf(path, callback)
-                } else {
-                    RootHelpers(activity!!).getFiles(path, callback)
                 }
             }
         }
@@ -389,17 +386,14 @@ class ItemsFragment : Fragment(), ItemOperationsListener, Breadcrumbs.Breadcrumb
             return
         }
 
-        if (context!!.isPathOnRoot(firstPath)) {
-            RootHelpers(activity!!).deleteFiles(files)
-        } else {
-            (activity as SimpleActivity).deleteFiles(files, hasFolder) {
-                if (!it) {
-                    activity!!.runOnUiThread {
-                        activity!!.toast(R.string.unknown_error_occurred)
-                    }
+        (activity as SimpleActivity).deleteFiles(files, hasFolder) {
+            if (!it) {
+                activity!!.runOnUiThread {
+                    activity!!.toast(R.string.unknown_error_occurred)
                 }
             }
         }
+
     }
 
     override fun selectedPaths(paths: ArrayList<String>) {
