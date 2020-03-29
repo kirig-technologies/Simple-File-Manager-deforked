@@ -12,12 +12,8 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.MenuItemCompat
-import com.simplemobiletools.commons.dialogs.RadioGroupDialog
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.*
-import com.simplemobiletools.commons.models.FAQItem
-import com.simplemobiletools.commons.models.RadioItem
-import com.simplemobiletools.commons.models.Release
 import com.simplemobiletools.filemanager.pro.BuildConfig
 import com.simplemobiletools.filemanager.pro.R
 import com.simplemobiletools.filemanager.pro.dialogs.ChangeSortingDialog
@@ -60,7 +56,6 @@ class MainActivity : SimpleActivity() {
                 if (it) {
                     mIsPasswordProtectionPending = false
                     tryInitFileManager()
-                    checkWhatsNewDialog()
                     checkIfRootAvailable()
                     checkInvalidFavorites()
                 } else {
@@ -111,7 +106,6 @@ class MainActivity : SimpleActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.go_home -> goHome()
-            R.id.go_to_favorite -> goToFavorite()
             R.id.sort -> showSortingDialog()
             R.id.add_favorite -> addFavorite()
             R.id.remove_favorite -> removeFavorite()
@@ -119,7 +113,6 @@ class MainActivity : SimpleActivity() {
             R.id.temporarily_show_hidden -> tryToggleTemporarilyShowHidden()
             R.id.stop_showing_hidden -> tryToggleTemporarilyShowHidden()
             R.id.settings -> startActivity(Intent(applicationContext, SettingsActivity::class.java))
-            R.id.about -> launchAbout()
             else -> return super.onOptionsItemSelected(item)
         }
         return true
@@ -268,23 +261,6 @@ class MainActivity : SimpleActivity() {
         config.removeFavorite(fragment.currentPath)
     }
 
-    private fun goToFavorite() {
-        val favorites = config.favorites
-        val items = ArrayList<RadioItem>(favorites.size)
-        var currFavoriteIndex = -1
-
-        favorites.forEachIndexed { index, path ->
-            items.add(RadioItem(index, path, path))
-            if (path == fragment.currentPath) {
-                currFavoriteIndex = index
-            }
-        }
-
-        RadioGroupDialog(this, items, currFavoriteIndex, R.string.go_to_favorite) {
-            openPath(it.toString())
-        }
-    }
-
     private fun setAsHome() {
         config.homeFolder = fragment.currentPath
         toast(R.string.home_folder_updated)
@@ -303,19 +279,6 @@ class MainActivity : SimpleActivity() {
     private fun toggleTemporarilyShowHidden(show: Boolean) {
         config.temporarilyShowHidden = show
         openPath(fragment.currentPath)
-    }
-
-    private fun launchAbout() {
-        val licenses = LICENSE_GLIDE or LICENSE_PATTERN or LICENSE_REPRINT or LICENSE_GESTURE_VIEWS
-
-        val faqItems = arrayListOf(
-                FAQItem(R.string.faq_3_title_commons, R.string.faq_3_text_commons),
-                FAQItem(R.string.faq_2_title_commons, R.string.faq_2_text_commons),
-                FAQItem(R.string.faq_6_title_commons, R.string.faq_6_text_commons),
-                FAQItem(R.string.faq_7_title_commons, R.string.faq_7_text_commons)
-        )
-
-        startAboutActivity(R.string.app_name, licenses, BuildConfig.VERSION_NAME, faqItems, true)
     }
 
     override fun onBackPressed() {
@@ -397,20 +360,6 @@ class MainActivity : SimpleActivity() {
     fun openedDirectory() {
         if (searchMenuItem != null) {
             MenuItemCompat.collapseActionView(searchMenuItem)
-        }
-    }
-
-    private fun checkWhatsNewDialog() {
-        arrayListOf<Release>().apply {
-            add(Release(26, R.string.release_26))
-            add(Release(28, R.string.release_28))
-            add(Release(29, R.string.release_29))
-            add(Release(34, R.string.release_34))
-            add(Release(35, R.string.release_35))
-            add(Release(37, R.string.release_37))
-            add(Release(71, R.string.release_71))
-            add(Release(75, R.string.release_75))
-            checkWhatsNew(this, BuildConfig.VERSION_CODE)
         }
     }
 }
