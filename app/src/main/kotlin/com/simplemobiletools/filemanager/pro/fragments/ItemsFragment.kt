@@ -60,7 +60,6 @@ class ItemsFragment : Fragment(), ItemOperationsListener, Breadcrumbs.Breadcrumb
         super.onViewCreated(view, savedInstanceState)
         mView.apply {
             items_swipe_refresh.setOnRefreshListener { refreshItems() }
-            items_fab.setOnClickListener { createNewItem() }
             breadcrumbs.listener = this@ItemsFragment
             breadcrumbs.updateFontSize(context!!.getTextSize())
         }
@@ -368,16 +367,6 @@ class ItemsFragment : Fragment(), ItemOperationsListener, Breadcrumbs.Breadcrumb
         }
         skipItemUpdating = false
         lastSearchedText = ""
-    }
-
-    private fun createNewItem() {
-        CreateNewItemDialog(activity as SimpleActivity, currentPath) {
-            if (it) {
-                refreshItems()
-            } else {
-                activity?.toast(R.string.unknown_error_occurred)
-            }
-        }
     }
 
     private fun getRecyclerAdapter() = mView.items_list.adapter as? ItemsAdapter

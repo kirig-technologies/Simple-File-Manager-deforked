@@ -70,13 +70,4 @@
             </com.simplemobiletools.commons.views.FastScroller>
         </RelativeLayout>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
-    <com.simplemobiletools.commons.views.MyFloatingActionButton
-        android:id="@+id/items_fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/activity_margin"
-        android:src="@drawable/ic_plus_vector"/>
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
