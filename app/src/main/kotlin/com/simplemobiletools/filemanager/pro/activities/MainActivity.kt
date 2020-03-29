@@ -12,8 +12,8 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.MenuItemCompat
-import com.simplemobiletools.commons.extensions.*
-import com.simplemobiletools.commons.helpers.*
+import com.simplemobiletools.filemanager.pro.extensions.*
+import com.simplemobiletools.filemanager.pro.helpers.*
 import com.simplemobiletools.filemanager.pro.BuildConfig
 import com.simplemobiletools.filemanager.pro.R
 import com.simplemobiletools.filemanager.pro.dialogs.ChangeSortingDialog
@@ -51,17 +51,9 @@ class MainActivity : SimpleActivity() {
         }
 
         if (savedInstanceState == null) {
-            handleAppPasswordProtection {
-                mWasProtectionHandled = it
-                if (it) {
-                    mIsPasswordProtectionPending = false
-                    tryInitFileManager()
-                    checkIfRootAvailable()
-                    checkInvalidFavorites()
-                } else {
-                    finish()
-                }
-            }
+            tryInitFileManager()
+            checkIfRootAvailable()
+            checkInvalidFavorites()
         }
     }
 
@@ -128,20 +120,7 @@ class MainActivity : SimpleActivity() {
         super.onRestoreInstanceState(savedInstanceState)
         mWasProtectionHandled = savedInstanceState.getBoolean(WAS_PROTECTION_HANDLED, false)
         val path = savedInstanceState.getString(PICKED_PATH) ?: internalStoragePath
-
-        if (!mWasProtectionHandled) {
-            handleAppPasswordProtection {
-                mWasProtectionHandled = it
-                if (it) {
-                    mIsPasswordProtectionPending = false
-                    openPath(path, true)
-                } else {
-                    finish()
-                }
-            }
-        } else {
-            openPath(path, true)
-        }
+        openPath(path, true)
     }
 
     private fun setupSearch(menu: Menu) {
@@ -270,9 +249,7 @@ class MainActivity : SimpleActivity() {
         if (config.temporarilyShowHidden) {
             toggleTemporarilyShowHidden(false)
         } else {
-            handleHiddenFolderPasswordProtection {
-                toggleTemporarilyShowHidden(true)
-            }
+            toggleTemporarilyShowHidden(true)
         }
     }
 
