@@ -24,8 +24,6 @@ import com.bumptech.glide.request.RequestOptions
 import com.simplemobiletools.commons.adapters.MyRecyclerViewAdapter
 import com.simplemobiletools.commons.dialogs.*
 import com.simplemobiletools.commons.extensions.*
-import com.simplemobiletools.commons.helpers.CONFLICT_OVERWRITE
-import com.simplemobiletools.commons.helpers.CONFLICT_SKIP
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isOreoPlus
 import com.simplemobiletools.commons.models.FileDirItem
@@ -42,13 +40,8 @@ import com.simplemobiletools.filemanager.pro.models.ListItem
 import com.stericson.RootTools.RootTools
 import kotlinx.android.synthetic.main.item_list_file_dir.view.*
 import kotlinx.android.synthetic.main.item_list_section.view.*
-import java.io.Closeable
 import java.io.File
-import java.io.FileInputStream
 import java.util.*
-import java.util.zip.ZipEntry
-import java.util.zip.ZipFile
-import java.util.zip.ZipOutputStream
 
 class ItemsAdapter(activity: SimpleActivity, var listItems: MutableList<ListItem>, val listener: ItemOperationsListener?, recyclerView: MyRecyclerView,
                    val isPickMultipleIntent: Boolean, fastScroller: FastScroller, itemClick: (Any) -> Unit) :
@@ -76,7 +69,6 @@ class ItemsAdapter(activity: SimpleActivity, var listItems: MutableList<ListItem
 
     override fun prepareActionMode(menu: Menu) {
         menu.apply {
-            findItem(R.id.cab_decompress).isVisible = getSelectedFileDirItems().map { it.path }.any { it.isZipFile() }
             findItem(R.id.cab_confirm_selection).isVisible = isPickMultipleIntent
             findItem(R.id.cab_copy_path).isVisible = isOneItemSelected()
             findItem(R.id.cab_open_with).isVisible = isOneFileSelected()
@@ -107,7 +99,6 @@ class ItemsAdapter(activity: SimpleActivity, var listItems: MutableList<ListItem
             R.id.cab_open_as -> openAs()
             R.id.cab_copy_to -> copyMoveTo(true)
             R.id.cab_move_to -> tryMoveFiles()
-            R.id.cab_decompress -> decompressSelection()
             R.id.cab_select_all -> selectAll()
             R.id.cab_delete -> askConfirmDelete()
         }
@@ -389,181 +380,6 @@ class ItemsAdapter(activity: SimpleActivity, var listItems: MutableList<ListItem
                 }
             }
         }
-    }
-
-    private fun decompressSelection() {
-        val firstPath = getFirstSelectedItemPath()
-        if (activity.isPathOnOTG(firstPath)) {
-            activity.toast(R.string.unknown_error_occurred)
-            return
-        }
-
-        activity.handleSAFDialog(firstPath) {
-            if (!it) {
-                return@handleSAFDialog
-            }
-
-            val paths = getSelectedFileDirItems().asSequence().map { it.path }.filter { it.isZipFile() }.toList()
-            tryDecompressingPaths(paths) {
-                if (it) {
-                    activity.toast(R.string.decompression_successful)
-                    activity.runOnUiThread {
-                        listener?.refreshItems()
-                        finishActMode()
-                    }
-                } else {
-                    activity.toast(R.string.decompressing_failed)
-                }
-            }
-        }
-    }
-
-    private fun tryDecompressingPaths(sourcePaths: List<String>, callback: (success: Boolean) -> Unit) {
-        sourcePaths.forEach {
-            try {
-                val zipFile = ZipFile(it)
-                val entries = zipFile.entries()
-                val fileDirItems = ArrayList<FileDirItem>()
-                while (entries.hasMoreElements()) {
-                    val entry = entries.nextElement()
-                    val currPath = if (entry.isDirectory) it else "${it.getParentPath().trimEnd('/')}/${entry.name}"
-                    val fileDirItem = FileDirItem(currPath, entry.name, entry.isDirectory, 0, entry.size)
-                    fileDirItems.add(fileDirItem)
-                }
-
-                val destinationPath = fileDirItems.first().getParentPath().trimEnd('/')
-                activity.checkConflicts(fileDirItems, destinationPath, 0, LinkedHashMap()) {
-                    ensureBackgroundThread {
-                        decompressPaths(sourcePaths, it, callback)
-                    }
-                }
-            } catch (exception: Exception) {
-                activity.showErrorToast(exception)
-            }
-        }
-    }
-
-    private fun decompressPaths(paths: List<String>, conflictResolutions: LinkedHashMap<String, Int>, callback: (success: Boolean) -> Unit) {
-        paths.forEach {
-            try {
-                val zipFile = ZipFile(it)
-                val entries = zipFile.entries()
-                val zipFileName = it.getFilenameFromPath()
-                val newFolderName = zipFileName.subSequence(0, zipFileName.length - 4)
-                while (entries.hasMoreElements()) {
-                    val entry = entries.nextElement()
-                    val parentPath = it.getParentPath()
-                    val newPath = "$parentPath/$newFolderName/${entry.name.trimEnd('/')}"
-
-                    val resolution = getConflictResolution(conflictResolutions, newPath)
-                    val doesPathExist = activity.getDoesFilePathExist(newPath)
-                    if (doesPathExist && resolution == CONFLICT_OVERWRITE) {
-                        val fileDirItem = FileDirItem(newPath, newPath.getFilenameFromPath(), entry.isDirectory)
-                        if (activity.getIsPathDirectory(it)) {
-                            activity.deleteFolderBg(fileDirItem, false) {
-                                if (it) {
-                                    extractEntry(newPath, entry, zipFile)
-                                } else {
-                                    callback(false)
-                                }
-                            }
-                        } else {
-                            activity.deleteFileBg(fileDirItem, false) {
-                                if (it) {
-                                    extractEntry(newPath, entry, zipFile)
-                                } else {
-                                    callback(false)
-                                }
-                            }
-                        }
-                    } else if (!doesPathExist) {
-                        extractEntry(newPath, entry, zipFile)
-                    }
-                }
-                callback(true)
-            } catch (e: Exception) {
-                activity.showErrorToast(e)
-                callback(false)
-            }
-        }
-    }
-
-    private fun extractEntry(newPath: String, entry: ZipEntry, zipFile: ZipFile) {
-        if (entry.isDirectory) {
-            if (!activity.createDirectorySync(newPath) && !activity.getDoesFilePathExist(newPath)) {
-                val error = String.format(activity.getString(R.string.could_not_create_file), newPath)
-                activity.showErrorToast(error)
-            }
-        } else {
-            val ins = zipFile.getInputStream(entry)
-            ins.use {
-                val fos = activity.getFileOutputStreamSync(newPath, newPath.getMimeType())
-                if (fos != null) {
-                    ins.copyTo(fos)
-                }
-            }
-        }
-    }
-
-    private fun getConflictResolution(conflictResolutions: LinkedHashMap<String, Int>, path: String): Int {
-        return if (conflictResolutions.size == 1 && conflictResolutions.containsKey("")) {
-            conflictResolutions[""]!!
-        } else if (conflictResolutions.containsKey(path)) {
-            conflictResolutions[path]!!
-        } else {
-            CONFLICT_SKIP
-        }
-    }
-
-    private fun compressPaths(sourcePaths: List<String>, targetPath: String): Boolean {
-        val queue = LinkedList<File>()
-        val fos = activity.getFileOutputStreamSync(targetPath, "application/zip") ?: return false
-
-        val zout = ZipOutputStream(fos)
-        var res: Closeable = fos
-
-        try {
-            sourcePaths.forEach {
-                var name: String
-                var mainFile = File(it)
-                val base = mainFile.parentFile.toURI()
-                res = zout
-                queue.push(mainFile)
-                if (activity.getIsPathDirectory(mainFile.absolutePath)) {
-                    name = "${mainFile.name.trimEnd('/')}/"
-                    zout.putNextEntry(ZipEntry(name))
-                }
-
-                while (!queue.isEmpty()) {
-                    mainFile = queue.pop()
-                    if (activity.getIsPathDirectory(mainFile.absolutePath)) {
-                        for (file in mainFile.listFiles()) {
-                            name = base.relativize(file.toURI()).path
-                            if (activity.getIsPathDirectory(file.absolutePath)) {
-                                queue.push(file)
-                                name = "${name.trimEnd('/')}/"
-                                zout.putNextEntry(ZipEntry(name))
-                            } else {
-                                zout.putNextEntry(ZipEntry(name))
-                                FileInputStream(file).copyTo(zout)
-                                zout.closeEntry()
-                            }
-                        }
-                    } else {
-                        name = if (base.path == it) it.getFilenameFromPath() else base.relativize(mainFile.toURI()).path
-                        zout.putNextEntry(ZipEntry(name))
-                        FileInputStream(mainFile).copyTo(zout)
-                        zout.closeEntry()
-                    }
-                }
-            }
-        } catch (exception: Exception) {
-            activity.showErrorToast(exception)
-            return false
-        } finally {
-            res.close()
-        }
-        return true
     }
 
     private fun askConfirmDelete() {
