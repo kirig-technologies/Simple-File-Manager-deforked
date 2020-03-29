@@ -27,7 +27,6 @@ class SettingsActivity : SimpleActivity() {
 
         setupCustomizeColors()
         setupUseEnglish()
-        setupManageFavorites()
         setupChangeDateTimeFormat()
         setupFontSize()
         setupShowHidden()
@@ -66,12 +65,6 @@ class SettingsActivity : SimpleActivity() {
             settings_use_english.toggle()
             config.useEnglish = settings_use_english.isChecked
             System.exit(0)
-        }
-    }
-
-    private fun setupManageFavorites() {
-        settings_manage_favorites_holder.setOnClickListener {
-            startActivity(Intent(this, FavoritesActivity::class.java))
         }
     }
 

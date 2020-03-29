@@ -33,8 +33,8 @@ import com.simplemobiletools.commons.models.RadioItem
 import com.simplemobiletools.commons.views.FastScroller
 import com.simplemobiletools.commons.views.MyRecyclerView
 import com.simplemobiletools.filemanager.pro.R
+import com.simplemobiletools.filemanager.pro.activities.MainActivity
 import com.simplemobiletools.filemanager.pro.activities.SimpleActivity
-import com.simplemobiletools.filemanager.pro.activities.SplashActivity
 import com.simplemobiletools.filemanager.pro.dialogs.CompressAsDialog
 import com.simplemobiletools.filemanager.pro.extensions.*
 import com.simplemobiletools.filemanager.pro.helpers.*
@@ -253,7 +253,7 @@ class ItemsAdapter(activity: SimpleActivity, var listItems: MutableList<ListItem
             val path = getFirstSelectedItemPath()
             val drawable = resources.getDrawable(R.drawable.shortcut_folder).mutate()
             getShortcutImage(path, drawable) {
-                val intent = Intent(activity, SplashActivity::class.java)
+                val intent = Intent(activity, MainActivity::class.java)
                 intent.action = Intent.ACTION_VIEW
                 intent.flags = intent.flags or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NO_HISTORY
                 intent.data = Uri.fromFile(File(path))
