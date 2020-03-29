@@ -1,15 +1,8 @@
 package com.simplemobiletools.filemanager.pro.activities
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
-import com.simplemobiletools.commons.dialogs.ChangeDateTimeFormatDialog
-import com.simplemobiletools.commons.dialogs.ConfirmationDialog
-import com.simplemobiletools.commons.dialogs.RadioGroupDialog
-import com.simplemobiletools.commons.dialogs.SecurityDialog
 import com.simplemobiletools.commons.extensions.*
-import com.simplemobiletools.commons.helpers.*
-import com.simplemobiletools.commons.models.RadioItem
 import com.simplemobiletools.filemanager.pro.R
 import com.simplemobiletools.filemanager.pro.extensions.config
 import com.simplemobiletools.filemanager.pro.helpers.RootHelpers
@@ -27,12 +20,7 @@ class SettingsActivity : SimpleActivity() {
 
         setupCustomizeColors()
         setupUseEnglish()
-        setupChangeDateTimeFormat()
-        setupFontSize()
         setupShowHidden()
-        setupHiddenItemPasswordProtection()
-        setupAppPasswordProtection()
-        setupFileDeletionPasswordProtection()
         setupKeepLastModified()
         setupEnableRootAccess()
         updateTextColors(settings_holder)
@@ -68,28 +56,6 @@ class SettingsActivity : SimpleActivity() {
         }
     }
 
-    private fun setupChangeDateTimeFormat() {
-        settings_change_date_time_format_holder.setOnClickListener {
-            ChangeDateTimeFormatDialog(this) {}
-        }
-    }
-
-    private fun setupFontSize() {
-        settings_font_size.text = getFontSizeText()
-        settings_font_size_holder.setOnClickListener {
-            val items = arrayListOf(
-                    RadioItem(FONT_SIZE_SMALL, getString(R.string.small)),
-                    RadioItem(FONT_SIZE_MEDIUM, getString(R.string.medium)),
-                    RadioItem(FONT_SIZE_LARGE, getString(R.string.large)),
-                    RadioItem(FONT_SIZE_EXTRA_LARGE, getString(R.string.extra_large)))
-
-            RadioGroupDialog(this@SettingsActivity, items, config.fontSize) {
-                config.fontSize = it as Int
-                settings_font_size.text = getFontSizeText()
-            }
-        }
-    }
-
     private fun setupShowHidden() {
         settings_show_hidden.isChecked = config.showHidden
         settings_show_hidden_holder.setOnClickListener {
@@ -106,72 +72,6 @@ class SettingsActivity : SimpleActivity() {
     private fun toggleShowHidden() {
         settings_show_hidden.toggle()
         config.showHidden = settings_show_hidden.isChecked
-    }
-
-    private fun setupHiddenItemPasswordProtection() {
-        settings_password_protection.isChecked = config.isHiddenPasswordProtectionOn
-        settings_password_protection_holder.setOnClickListener {
-            val tabToShow = if (config.isHiddenPasswordProtectionOn) config.hiddenProtectionType else SHOW_ALL_TABS
-            SecurityDialog(this, config.hiddenPasswordHash, tabToShow) { hash, type, success ->
-                if (success) {
-                    val hasPasswordProtection = config.isHiddenPasswordProtectionOn
-                    settings_password_protection.isChecked = !hasPasswordProtection
-                    config.isHiddenPasswordProtectionOn = !hasPasswordProtection
-                    config.hiddenPasswordHash = if (hasPasswordProtection) "" else hash
-                    config.hiddenProtectionType = type
-
-                    if (config.isHiddenPasswordProtectionOn) {
-                        val confirmationTextId = if (config.hiddenProtectionType == PROTECTION_FINGERPRINT)
-                            R.string.fingerprint_setup_successfully else R.string.protection_setup_successfully
-                        ConfirmationDialog(this, "", confirmationTextId, R.string.ok, 0) { }
-                    }
-                }
-            }
-        }
-    }
-
-    private fun setupAppPasswordProtection() {
-        settings_app_password_protection.isChecked = config.isAppPasswordProtectionOn
-        settings_app_password_protection_holder.setOnClickListener {
-            val tabToShow = if (config.isAppPasswordProtectionOn) config.appProtectionType else SHOW_ALL_TABS
-            SecurityDialog(this, config.appPasswordHash, tabToShow) { hash, type, success ->
-                if (success) {
-                    val hasPasswordProtection = config.isAppPasswordProtectionOn
-                    settings_app_password_protection.isChecked = !hasPasswordProtection
-                    config.isAppPasswordProtectionOn = !hasPasswordProtection
-                    config.appPasswordHash = if (hasPasswordProtection) "" else hash
-                    config.appProtectionType = type
-
-                    if (config.isAppPasswordProtectionOn) {
-                        val confirmationTextId = if (config.appProtectionType == PROTECTION_FINGERPRINT)
-                            R.string.fingerprint_setup_successfully else R.string.protection_setup_successfully
-                        ConfirmationDialog(this, "", confirmationTextId, R.string.ok, 0) { }
-                    }
-                }
-            }
-        }
-    }
-
-    private fun setupFileDeletionPasswordProtection() {
-        settings_file_deletion_password_protection.isChecked = config.isDeletePasswordProtectionOn
-        settings_file_deletion_password_protection_holder.setOnClickListener {
-            val tabToShow = if (config.isDeletePasswordProtectionOn) config.deleteProtectionType else SHOW_ALL_TABS
-            SecurityDialog(this, config.deletePasswordHash, tabToShow) { hash, type, success ->
-                if (success) {
-                    val hasPasswordProtection = config.isDeletePasswordProtectionOn
-                    settings_file_deletion_password_protection.isChecked = !hasPasswordProtection
-                    config.isDeletePasswordProtectionOn = !hasPasswordProtection
-                    config.deletePasswordHash = if (hasPasswordProtection) "" else hash
-                    config.deleteProtectionType = type
-
-                    if (config.isDeletePasswordProtectionOn) {
-                        val confirmationTextId = if (config.deleteProtectionType == PROTECTION_FINGERPRINT)
-                            R.string.fingerprint_setup_successfully else R.string.protection_setup_successfully
-                        ConfirmationDialog(this, "", confirmationTextId, R.string.ok, 0) { }
-                    }
-                }
-            }
-        }
     }
 
     private fun setupKeepLastModified() {
