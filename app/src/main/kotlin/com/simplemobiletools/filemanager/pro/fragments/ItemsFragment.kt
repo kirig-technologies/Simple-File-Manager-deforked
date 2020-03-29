@@ -9,7 +9,6 @@ import androidx.fragment.app.Fragment
 import com.simplemobiletools.filemanager.pro.R
 import com.simplemobiletools.filemanager.pro.activities.BaseSimpleActivity
 import com.simplemobiletools.filemanager.pro.activities.MainActivity
-import com.simplemobiletools.filemanager.pro.activities.SimpleActivity
 import com.simplemobiletools.filemanager.pro.adapters.ItemsAdapter
 import com.simplemobiletools.filemanager.pro.dialogs.StoragePickerDialog
 import com.simplemobiletools.filemanager.pro.extensions.*
@@ -151,7 +150,7 @@ class ItemsFragment : Fragment(), ItemOperationsListener, Breadcrumbs.Breadcrumb
                 }
 
                 storedItems = items
-                ItemsAdapter(activity as SimpleActivity, storedItems, this@ItemsFragment, items_list, isPickMultipleIntent, items_fastscroller) {
+                ItemsAdapter(activity as BaseSimpleActivity, storedItems, this@ItemsFragment, items_list, isPickMultipleIntent, items_fastscroller) {
                     itemClicked(it as FileDirItem)
                 }.apply {
                     items_list.adapter = this
@@ -365,7 +364,7 @@ class ItemsFragment : Fragment(), ItemOperationsListener, Breadcrumbs.Breadcrumb
 
     override fun breadcrumbClicked(id: Int) {
         if (id == 0) {
-            StoragePickerDialog(activity as SimpleActivity, currentPath, true) {
+            StoragePickerDialog(activity as BaseSimpleActivity, currentPath, true) {
                 getRecyclerAdapter()?.finishActMode()
                 openPath(it)
             }
@@ -377,23 +376,6 @@ class ItemsFragment : Fragment(), ItemOperationsListener, Breadcrumbs.Breadcrumb
 
     override fun refreshItems() {
         openPath(currentPath)
-    }
-
-    override fun deleteFiles(files: ArrayList<FileDirItem>) {
-        val hasFolder = files.any { it.isDirectory }
-        val firstPath = files.firstOrNull()?.path
-        if (firstPath == null || firstPath.isEmpty() || context == null) {
-            return
-        }
-
-        (activity as SimpleActivity).deleteFiles(files, hasFolder) {
-            if (!it) {
-                activity!!.runOnUiThread {
-                    activity!!.toast(R.string.unknown_error_occurred)
-                }
-            }
-        }
-
     }
 
     override fun selectedPaths(paths: ArrayList<String>) {

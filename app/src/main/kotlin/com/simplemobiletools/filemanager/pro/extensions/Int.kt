@@ -1,7 +1,6 @@
 package com.simplemobiletools.filemanager.pro.extensions
 
 import android.graphics.Color
-import android.media.ExifInterface
 import java.util.*
 
 fun Int.getContrastColor(): Int {
@@ -11,14 +10,6 @@ fun Int.getContrastColor(): Int {
 }
 
 fun Int.toHex() = String.format("#%06X", 0xFFFFFF and this).toUpperCase()
-
-fun Int.adjustAlpha(factor: Float): Int {
-    val alpha = Math.round(Color.alpha(this) * factor)
-    val red = Color.red(this)
-    val green = Color.green(this)
-    val blue = Color.blue(this)
-    return Color.argb(alpha, red, green, blue)
-}
 
 fun Int.getFormattedDuration(): String {
     val sb = StringBuilder(8)
@@ -34,22 +25,6 @@ fun Int.getFormattedDuration(): String {
     sb.append(":").append(String.format(Locale.getDefault(), "%02d", seconds))
     return sb.toString()
 }
-
-fun Int.addBitIf(add: Boolean, bit: Int) =
-        if (add) {
-            addBit(bit)
-        } else {
-            removeBit(bit)
-        }
-
-// TODO: how to do "bits & ~bit" in kotlin?
-fun Int.removeBit(bit: Int) = addBit(bit) - bit
-
-fun Int.addBit(bit: Int) = this or bit
-
-fun Int.flipBit(bit: Int) = if (this and bit == 0) addBit(bit) else removeBit(bit)
-
-fun ClosedRange<Int>.random() = Random().nextInt(endInclusive - start) + start
 
 // taken from https://stackoverflow.com/a/40964456/1967672
 fun Int.darkenColor(): Int {
@@ -89,26 +64,4 @@ private fun hsv2hsl(hsv: FloatArray): FloatArray {
         newSat = 1f
 
     return floatArrayOf(hue, newSat, newHue / 2f)
-}
-
-fun Int.orientationFromDegrees() = when (this) {
-    270 -> ExifInterface.ORIENTATION_ROTATE_270
-    180 -> ExifInterface.ORIENTATION_ROTATE_180
-    90 -> ExifInterface.ORIENTATION_ROTATE_90
-    else -> ExifInterface.ORIENTATION_NORMAL
-}.toString()
-
-fun Int.degreesFromOrientation() = when (this) {
-    ExifInterface.ORIENTATION_ROTATE_270 -> 270
-    ExifInterface.ORIENTATION_ROTATE_180 -> 180
-    ExifInterface.ORIENTATION_ROTATE_90 -> 90
-    else -> 0
-}
-
-fun Int.ensureTwoDigits(): String {
-    return if (toString().length == 1) {
-        "0$this"
-    } else {
-        toString()
-    }
 }

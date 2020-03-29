@@ -2,45 +2,26 @@ package com.simplemobiletools.filemanager.pro.extensions
 
 import android.Manifest
 import android.app.Activity
-import android.content.ComponentName
 import android.content.ContentUris
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.Configuration
 import android.database.Cursor
 import android.graphics.Color
 import android.graphics.Point
-import android.media.ExifInterface
 import android.media.MediaMetadataRetriever
 import android.net.Uri
-import android.os.Build
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
-import android.provider.BaseColumns
 import android.provider.DocumentsContract
 import android.provider.MediaStore
-import android.provider.OpenableColumns
-import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import androidx.loader.content.CursorLoader
 import com.simplemobiletools.filemanager.pro.R
 import com.simplemobiletools.filemanager.pro.helpers.*
-import com.simplemobiletools.filemanager.pro.helpers.MyContentProvider.Companion.COL_APP_ICON_COLOR
-import com.simplemobiletools.filemanager.pro.helpers.MyContentProvider.Companion.COL_BACKGROUND_COLOR
-import com.simplemobiletools.filemanager.pro.helpers.MyContentProvider.Companion.COL_LAST_UPDATED_TS
-import com.simplemobiletools.filemanager.pro.helpers.MyContentProvider.Companion.COL_NAVIGATION_BAR_COLOR
-import com.simplemobiletools.filemanager.pro.helpers.MyContentProvider.Companion.COL_PRIMARY_COLOR
-import com.simplemobiletools.filemanager.pro.helpers.MyContentProvider.Companion.COL_TEXT_COLOR
-import com.simplemobiletools.filemanager.pro.models.SharedTheme
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.*
 
 fun Context.getSharedPrefs() = getSharedPreferences(PREFS_KEY, Context.MODE_PRIVATE)
 
@@ -243,36 +224,6 @@ fun Context.ensurePublicUri(path: String, applicationId: String): Uri? {
     }
 }
 
-fun Context.getFilenameFromContentUri(uri: Uri): String? {
-    var cursor: Cursor? = null
-    try {
-        cursor = contentResolver.query(uri, null, null, null, null)
-        if (cursor?.moveToFirst() == true) {
-            return cursor.getStringValue(OpenableColumns.DISPLAY_NAME)
-        }
-    } catch (e: Exception) {
-    } finally {
-        cursor?.close()
-    }
-    return null
-}
-
-fun Context.getSharedThemeSync(cursorLoader: CursorLoader): SharedTheme? {
-    val cursor = cursorLoader.loadInBackground()
-    cursor?.use {
-        if (cursor.moveToFirst()) {
-            val textColor = cursor.getIntValue(COL_TEXT_COLOR)
-            val backgroundColor = cursor.getIntValue(COL_BACKGROUND_COLOR)
-            val primaryColor = cursor.getIntValue(COL_PRIMARY_COLOR)
-            val appIconColor = cursor.getIntValue(COL_APP_ICON_COLOR)
-            val navigationBarColor = cursor.getIntValueOrNull(COL_NAVIGATION_BAR_COLOR) ?: INVALID_NAVIGATION_BAR_COLOR
-            val lastUpdatedTS = cursor.getIntValue(COL_LAST_UPDATED_TS)
-            return SharedTheme(textColor, backgroundColor, primaryColor, appIconColor, navigationBarColor, lastUpdatedTS)
-        }
-    }
-    return null
-}
-
 fun Context.updateSDCardPath() {
     ensureBackgroundThread {
         val oldPath = baseConfig.sdCardPath
@@ -337,25 +288,6 @@ fun Context.getTextSize() = when (baseConfig.fontSize) {
 }
 
 val Context.windowManager: WindowManager get() = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-val Context.navigationBarRight: Boolean get() = usableScreenSize.x < realScreenSize.x
-val Context.navigationBarBottom: Boolean get() = usableScreenSize.y < realScreenSize.y
-
-val Context.navigationBarSize: Point
-    get() = when {
-        navigationBarRight -> Point(newNavigationBarHeight, usableScreenSize.y)
-        navigationBarBottom -> Point(usableScreenSize.x, newNavigationBarHeight)
-        else -> Point()
-    }
-
-val Context.newNavigationBarHeight: Int
-    get() {
-        var navigationBarHeight = 0
-        val resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android")
-        if (resourceId > 0) {
-            navigationBarHeight = resources.getDimensionPixelSize(resourceId)
-        }
-        return navigationBarHeight
-    }
 
 val Context.usableScreenSize: Point
     get() {

@@ -1,12 +1,9 @@
 package com.simplemobiletools.filemanager.pro.extensions
 
-import android.content.Context
-import com.simplemobiletools.filemanager.pro.helpers.*
-import com.simplemobiletools.filemanager.pro.models.FileDirItem
+import com.simplemobiletools.filemanager.pro.helpers.NOMEDIA
 import java.io.File
 
 fun File.isMediaFile() = absolutePath.isMediaFile()
-fun File.getMimeType() = absolutePath.getMimeType()
 
 fun File.getProperSize(countHiddenItems: Boolean): Long {
     return if (isDirectory) {

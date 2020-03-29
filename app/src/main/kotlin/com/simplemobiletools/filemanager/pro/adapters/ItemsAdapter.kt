@@ -5,18 +5,16 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
-import android.graphics.drawable.LayerDrawable
 import android.util.TypedValue
 import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.DecodeFormat
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
 import com.simplemobiletools.filemanager.pro.R
-import com.simplemobiletools.filemanager.pro.activities.SimpleActivity
+import com.simplemobiletools.filemanager.pro.activities.BaseSimpleActivity
 import com.simplemobiletools.filemanager.pro.dialogs.PropertiesDialog
 import com.simplemobiletools.filemanager.pro.extensions.*
 import com.simplemobiletools.filemanager.pro.helpers.ensureBackgroundThread
@@ -30,7 +28,7 @@ import kotlinx.android.synthetic.main.item_list_section.view.*
 import java.io.File
 import java.util.*
 
-class ItemsAdapter(activity: SimpleActivity, var listItems: MutableList<ListItem>, val listener: ItemOperationsListener?, recyclerView: MyRecyclerView,
+class ItemsAdapter(activity: BaseSimpleActivity, var listItems: MutableList<ListItem>, val listener: ItemOperationsListener?, recyclerView: MyRecyclerView,
                    val isPickMultipleIntent: Boolean, fastScroller: FastScroller, itemClick: (Any) -> Unit) :
         MyRecyclerViewAdapter(activity, recyclerView, fastScroller, itemClick) {
 
@@ -123,8 +121,6 @@ class ItemsAdapter(activity: SimpleActivity, var listItems: MutableList<ListItem
         fileDrawable.alpha = 180
     }
 
-    private fun isOneFileSelected() = isOneItemSelected() && getItemWithKey(selectedKeys.first())?.isDirectory == false
-
     private fun checkHideBtnVisibility(menu: Menu) {
         var hiddenCnt = 0
         var unhiddenCnt = 0
@@ -177,43 +173,6 @@ class ItemsAdapter(activity: SimpleActivity, var listItems: MutableList<ListItem
             activity.runOnUiThread {
                 listener?.refreshItems()
                 finishActMode()
-            }
-        }
-    }
-
-    private fun getShortcutImage(path: String, drawable: Drawable, callback: () -> Unit) {
-        val appIconColor = baseConfig.appIconColor
-        (drawable as LayerDrawable).findDrawableByLayerId(R.id.shortcut_folder_background).applyColorFilter(appIconColor)
-        if (activity.getIsPathDirectory(path)) {
-            callback()
-        } else {
-            ensureBackgroundThread {
-                val options = RequestOptions()
-                        .format(DecodeFormat.PREFER_ARGB_8888)
-                        .skipMemoryCache(true)
-                        .diskCacheStrategy(DiskCacheStrategy.NONE)
-                        .fitCenter()
-
-                val size = activity.resources.getDimension(R.dimen.shortcut_size).toInt()
-                val builder = Glide.with(activity)
-                        .asDrawable()
-                        .load(getImagePathToLoad(path))
-                        .apply(options)
-                        .centerCrop()
-                        .into(size, size)
-
-                try {
-                    val bitmap = builder.get()
-                    drawable.findDrawableByLayerId(R.id.shortcut_folder_background).applyColorFilter(0)
-                    drawable.setDrawableByLayerId(R.id.shortcut_folder_image, bitmap)
-                } catch (e: Exception) {
-                    val fileIcon = activity.resources.getDrawable(R.drawable.ic_file_vector)
-                    drawable.setDrawableByLayerId(R.id.shortcut_folder_image, fileIcon)
-                }
-
-                activity.runOnUiThread {
-                    callback()
-                }
             }
         }
     }

@@ -5,7 +5,6 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ApplicationInfo
 import android.net.Uri
 import android.os.TransactionTooLargeException
 import android.provider.DocumentsContract
@@ -13,8 +12,6 @@ import android.text.Html
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
-import android.view.inputmethod.InputMethodManager
-import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -24,7 +21,6 @@ import com.simplemobiletools.filemanager.pro.R
 import com.simplemobiletools.filemanager.pro.activities.BaseSimpleActivity
 import com.simplemobiletools.filemanager.pro.dialogs.WritePermissionDialog
 import com.simplemobiletools.filemanager.pro.helpers.*
-import com.simplemobiletools.filemanager.pro.models.FileDirItem
 import kotlinx.android.synthetic.main.dialog_title.view.*
 import java.io.File
 import java.io.FileInputStream
@@ -104,11 +100,6 @@ fun Activity.appLaunched(appId: String) {
     baseConfig.internalStoragePath = getInternalStoragePath()
     updateSDCardPath()
     baseConfig.appId = appId
-    if (baseConfig.appRunCount == 0) {
-        baseConfig.wasOrangeIconChecked = true
-    }
-
-    baseConfig.appRunCount++
 
     if (baseConfig.navigationBarColor == INVALID_NAVIGATION_BAR_COLOR && (window.attributes.flags and WindowManager.LayoutParams.FLAG_FULLSCREEN == 0)) {
         baseConfig.defaultNavigationBarColor = window.navigationBarColor
@@ -304,90 +295,6 @@ fun Activity.tryGenericMimeType(intent: Intent, mimeType: String, uri: Uri): Boo
     } else {
         false
     }
-}
-
-fun BaseSimpleActivity.deleteFiles(files: ArrayList<FileDirItem>, allowDeleteFolder: Boolean = false, callback: ((wasSuccess: Boolean) -> Unit)? = null) {
-    ensureBackgroundThread {
-        deleteFilesBg(files, allowDeleteFolder, callback)
-    }
-}
-
-fun BaseSimpleActivity.deleteFilesBg(files: ArrayList<FileDirItem>, allowDeleteFolder: Boolean = false, callback: ((wasSuccess: Boolean) -> Unit)? = null) {
-    if (files.isEmpty()) {
-        runOnUiThread {
-            callback?.invoke(true)
-        }
-        return
-    }
-
-    var wasSuccess = false
-    handleSAFDialog(files[0].path) {
-        if (!it) {
-            return@handleSAFDialog
-        }
-
-        files.forEachIndexed { index, file ->
-            deleteFileBg(file, allowDeleteFolder) {
-                if (it) {
-                    wasSuccess = true
-                }
-
-                if (index == files.size - 1) {
-                    runOnUiThread {
-                        callback?.invoke(wasSuccess)
-                    }
-                }
-            }
-        }
-    }
-}
-
-fun BaseSimpleActivity.deleteFile(fileDirItem: FileDirItem, allowDeleteFolder: Boolean = false, callback: ((wasSuccess: Boolean) -> Unit)? = null) {
-    ensureBackgroundThread {
-        deleteFileBg(fileDirItem, allowDeleteFolder, callback)
-    }
-}
-
-fun BaseSimpleActivity.deleteFileBg(fileDirItem: FileDirItem, allowDeleteFolder: Boolean = false, callback: ((wasSuccess: Boolean) -> Unit)? = null) {
-    val path = fileDirItem.path
-    val file = File(path)
-    if (file.absolutePath.startsWith(internalStoragePath) && !file.canWrite()) {
-        callback?.invoke(false)
-        return
-    }
-
-    var fileDeleted = !isPathOnOTG(path) && ((!file.exists() && file.length() == 0L) || file.delete())
-    if (fileDeleted) {
-        deleteFromMediaStore(path)
-        runOnUiThread {
-            callback?.invoke(true)
-        }
-    } else {
-        if (getIsPathDirectory(file.absolutePath) && allowDeleteFolder) {
-            fileDeleted = deleteRecursively(file)
-        }
-
-        if (!fileDeleted) {
-            if (needsStupidWritePermissions(path)) {
-                handleSAFDialog(path) {
-                    if (it) {
-                        trySAFFileDelete(fileDirItem, allowDeleteFolder, callback)
-                    }
-                }
-            }
-        }
-    }
-}
-
-private fun deleteRecursively(file: File): Boolean {
-    if (file.isDirectory) {
-        val files = file.listFiles() ?: return file.delete()
-        for (child in files) {
-            deleteRecursively(child)
-        }
-    }
-
-    return file.delete()
 }
 
 fun Activity.scanPathRecursively(path: String, callback: (() -> Unit)? = null) {

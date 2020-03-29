@@ -238,7 +238,7 @@ class PropertiesDialog() {
             mPropertyView.properties_holder.addView(this)
 
             property_value.setOnLongClickListener {
-                mActivity.copyToClipboard(property_value.value)
+                mActivity.copyToClipboard(property_value.text.toString().trim())
                 true
             }
 

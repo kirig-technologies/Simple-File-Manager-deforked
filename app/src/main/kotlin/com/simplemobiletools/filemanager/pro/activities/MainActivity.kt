@@ -25,7 +25,7 @@ import kotlinx.android.synthetic.main.items_fragment.view.*
 import java.io.File
 import java.util.*
 
-class MainActivity : SimpleActivity() {
+class MainActivity : BaseSimpleActivity() {
     private val BACK_PRESS_TIMEOUT = 5000
     private val PICKED_PATH = "picked_path"
     private var isSearchOpen = false
@@ -50,7 +50,6 @@ class MainActivity : SimpleActivity() {
 
         if (savedInstanceState == null) {
             tryInitFileManager()
-            checkInvalidFavorites()
         }
     }
 
@@ -244,16 +243,6 @@ class MainActivity : SimpleActivity() {
         } else {
             fragment.mView.breadcrumbs.removeBreadcrumb()
             openPath(fragment.mView.breadcrumbs.getLastItem().path)
-        }
-    }
-
-    private fun checkInvalidFavorites() {
-        ensureBackgroundThread {
-            config.favorites.forEach {
-                if (!isPathOnOTG(it) && !isPathOnSD(it) && !File(it).exists()) {
-                    config.removeFavorite(it)
-                }
-            }
         }
     }
 

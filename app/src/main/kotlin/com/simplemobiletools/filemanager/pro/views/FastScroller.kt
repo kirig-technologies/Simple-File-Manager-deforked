@@ -143,27 +143,6 @@ class FastScroller : FrameLayout {
         }
     }
 
-    fun setContentWidth(width: Int) {
-        recyclerViewContentWidth = width
-        wasRecyclerViewContentSizeSet = true
-        updateHandlePosition()
-        isScrollingEnabled = recyclerViewContentWidth > recyclerViewWidth
-    }
-
-    fun setContentHeight(height: Int) {
-        recyclerViewContentHeight = height
-        wasRecyclerViewContentSizeSet = true
-        updateHandlePosition()
-        isScrollingEnabled = recyclerViewContentHeight > recyclerViewHeight
-    }
-
-    fun setScrollToX(x: Int) {
-        measureRecyclerView()
-        currScrollX = x
-        updateHandlePosition()
-        hideHandle()
-    }
-
     fun setScrollToY(y: Int) {
         measureRecyclerView()
         currScrollY = y

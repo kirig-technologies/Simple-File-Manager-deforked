@@ -17,7 +17,6 @@ import java.text.Normalizer
 import java.util.*
 import java.util.regex.Pattern
 
-fun String.isZipFile() = endsWith(".zip", true)
 
 fun String.getFilenameFromPath() = substring(lastIndexOf("/") + 1)
 

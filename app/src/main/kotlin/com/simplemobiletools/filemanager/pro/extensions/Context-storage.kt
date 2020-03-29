@@ -11,7 +11,6 @@ import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.text.TextUtils
-import androidx.core.content.FileProvider
 import androidx.documentfile.provider.DocumentFile
 import com.simplemobiletools.filemanager.pro.R
 import com.simplemobiletools.filemanager.pro.helpers.*
@@ -24,7 +23,7 @@ import java.util.regex.Pattern
 // http://stackoverflow.com/a/40582634/1967672
 fun Context.getSDCardPath(): String {
     val directories = getStorageDirectories().filter {
-        !it.equals(getInternalStoragePath()) && !it.equals("/storage/emulated/0", true) && (baseConfig.OTGPartition.isEmpty() || !it.endsWith(baseConfig.OTGPartition))
+        it != getInternalStoragePath() && !it.equals("/storage/emulated/0", true) && (baseConfig.OTGPartition.isEmpty() || !it.endsWith(baseConfig.OTGPartition))
     }
 
     val fullSDpattern = Pattern.compile(SD_OTG_PATTERN)

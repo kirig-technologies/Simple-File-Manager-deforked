@@ -2,44 +2,31 @@ package com.simplemobiletools.filemanager.pro.activities
 
 import android.app.Activity
 import android.app.ActivityManager
-import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.ColorDrawable
 import android.net.Uri
-import android.os.Bundle
 import android.provider.DocumentsContract
 import android.view.MenuItem
-import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.simplemobiletools.filemanager.pro.R
 import com.simplemobiletools.filemanager.pro.dialogs.WritePermissionDialog
 import com.simplemobiletools.filemanager.pro.extensions.*
-import com.simplemobiletools.filemanager.pro.helpers.*
-import java.io.File
-import java.util.*
+import com.simplemobiletools.filemanager.pro.helpers.INVALID_NAVIGATION_BAR_COLOR
+import com.simplemobiletools.filemanager.pro.helpers.OPEN_DOCUMENT_TREE
+import com.simplemobiletools.filemanager.pro.helpers.OPEN_DOCUMENT_TREE_OTG
+import com.simplemobiletools.filemanager.pro.helpers.SD_OTG_SHORT
 import java.util.regex.Pattern
 
 abstract class BaseSimpleActivity : AppCompatActivity() {
-    var copyMoveCallback: ((destinationPath: String) -> Unit)? = null
     var actionOnPermission: ((granted: Boolean) -> Unit)? = null
     var isAskingPermissions = false
-    var useDynamicTheme = true
     var checkedDocumentPath = ""
-    var configItemsToExport = LinkedHashMap<String, Any>()
 
     private val GENERIC_PERM_HANDLER = 100
 
     companion object {
         var funAfterSAFPermission: ((success: Boolean) -> Unit)? = null
-    }
-
-    abstract fun getAppIconIDs(): ArrayList<Int>
-
-    abstract fun getAppLauncherName(): String
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
     }
 
     override fun onResume() {
@@ -66,18 +53,6 @@ abstract class BaseSimpleActivity : AppCompatActivity() {
         return true
     }
 
-    override fun attachBaseContext(newBase: Context) {
-        if (newBase.baseConfig.useEnglish) {
-            super.attachBaseContext(MyContextWrapper(newBase).wrap(newBase, "en"))
-        } else {
-            super.attachBaseContext(newBase)
-        }
-    }
-
-    fun updateBackgroundColor(color: Int = baseConfig.backgroundColor) {
-        window.decorView.setBackgroundColor(color)
-    }
-
     fun updateActionbarColor(color: Int = baseConfig.primaryColor) {
         supportActionBar?.setBackgroundDrawable(ColorDrawable(color))
         updateActionBarTitle(supportActionBar?.title.toString(), color)
@@ -96,10 +71,6 @@ abstract class BaseSimpleActivity : AppCompatActivity() {
             } catch (ignored: Exception) {
             }
         }
-    }
-
-    fun setTranslucentNavigation() {
-        window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION, WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
@@ -212,17 +183,6 @@ abstract class BaseSimpleActivity : AppCompatActivity() {
                 }
             }
         }
-    }
-
-    fun getAlternativeFile(file: File): File {
-        var fileIndex = 1
-        var newFile: File?
-        do {
-            val newName = String.format("%s(%d).%s", file.nameWithoutExtension, fileIndex, file.extension)
-            newFile = File(file.parent, newName)
-            fileIndex++
-        } while (getDoesFilePathExist(newFile!!.absolutePath))
-        return newFile
     }
 
     fun handlePermission(permissionId: Int, callback: (granted: Boolean) -> Unit) {
