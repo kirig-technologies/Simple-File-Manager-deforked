@@ -5,10 +5,9 @@ import android.view.ViewGroup
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import androidx.appcompat.app.AlertDialog
+import com.simplemobiletools.filemanager.pro.R
 import com.simplemobiletools.filemanager.pro.activities.BaseSimpleActivity
 import com.simplemobiletools.filemanager.pro.extensions.*
-import com.simplemobiletools.filemanager.pro.R
-import com.simplemobiletools.filemanager.pro.extensions.getBasePath
 import kotlinx.android.synthetic.main.dialog_radio_group.view.*
 
 /**

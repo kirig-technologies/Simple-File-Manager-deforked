@@ -11,11 +11,11 @@ import android.widget.TextView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.simplemobiletools.filemanager.pro.R
 import com.simplemobiletools.filemanager.pro.extensions.applyColorFilter
 import com.simplemobiletools.filemanager.pro.extensions.baseConfig
 import com.simplemobiletools.filemanager.pro.extensions.getAdjustedPrimaryColor
 import com.simplemobiletools.filemanager.pro.extensions.onGlobalLayout
-import com.simplemobiletools.filemanager.pro.R
 
 // based on https://blog.stylingandroid.com/recyclerview-fastscroll-part-1
 class FastScroller : FrameLayout {
@@ -380,7 +380,7 @@ class FastScroller : FrameLayout {
         } else {
             handle!!.y = getValueInRange(0, recyclerViewHeight - handleHeight, pos - handleYOffset)
             if (bubble != null && allowBubbleDisplay && handle!!.isSelected) {
-                bubble!!.y = getValueInRange(tinyMargin.toInt(), recyclerViewHeight - bubbleHeight, handle!!.y - bubbleHeight)
+                bubble!!.y = getValueInRange(tinyMargin, recyclerViewHeight - bubbleHeight, handle!!.y - bubbleHeight)
                 bubbleHideHandler.removeCallbacksAndMessages(null)
                 bubble?.alpha = 1f
             }

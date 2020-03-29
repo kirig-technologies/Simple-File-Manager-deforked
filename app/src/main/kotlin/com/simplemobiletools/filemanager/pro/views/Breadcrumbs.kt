@@ -6,10 +6,9 @@ import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.LinearLayout
+import com.simplemobiletools.filemanager.pro.R
 import com.simplemobiletools.filemanager.pro.extensions.*
 import com.simplemobiletools.filemanager.pro.models.FileDirItem
-import com.simplemobiletools.filemanager.pro.R
-import com.simplemobiletools.filemanager.pro.extensions.baseConfig
 import kotlinx.android.synthetic.main.breadcrumb_item.view.*
 
 class Breadcrumbs(context: Context, attrs: AttributeSet) : LinearLayout(context, attrs), View.OnClickListener {

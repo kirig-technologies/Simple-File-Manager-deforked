@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <ImageView
-        android:id="@+id/fastscroller_handle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end"
@@ -12,7 +11,6 @@
         android:background="@drawable/fastscroller_handle_vertical"/>
 
     <TextView
-        android:id="@+id/fastscroller_bubble"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/bigger_margin"

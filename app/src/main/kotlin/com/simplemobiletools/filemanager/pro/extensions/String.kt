@@ -10,7 +10,6 @@ import android.text.Spannable
 import android.text.SpannableString
 import android.text.TextUtils
 import android.text.style.ForegroundColorSpan
-import android.widget.TextView
 import com.bumptech.glide.signature.ObjectKey
 import com.simplemobiletools.filemanager.pro.helpers.*
 import java.io.File

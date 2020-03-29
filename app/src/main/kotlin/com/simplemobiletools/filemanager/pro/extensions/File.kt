@@ -6,18 +6,6 @@ import com.simplemobiletools.filemanager.pro.models.FileDirItem
 import java.io.File
 
 fun File.isMediaFile() = absolutePath.isMediaFile()
-fun File.isGif() = absolutePath.endsWith(".gif", true)
-fun File.isVideoFast() = videoExtensions.any { absolutePath.endsWith(it, true) }
-fun File.isImageFast() = photoExtensions.any { absolutePath.endsWith(it, true) }
-fun File.isAudioFast() = audioExtensions.any { absolutePath.endsWith(it, true) }
-fun File.isRawFast() = rawExtensions.any { absolutePath.endsWith(it, true) }
-fun File.isSvg() = absolutePath.isSvg()
-fun File.isPortrait() = absolutePath.isPortrait()
-
-fun File.isImageSlow() = absolutePath.isImageFast() || getMimeType().startsWith("image")
-fun File.isVideoSlow() = absolutePath.isVideoFast() || getMimeType().startsWith("video")
-fun File.isAudioSlow() = absolutePath.isAudioFast() || getMimeType().startsWith("audio")
-
 fun File.getMimeType() = absolutePath.getMimeType()
 
 fun File.getProperSize(countHiddenItems: Boolean): Long {
@@ -74,8 +62,6 @@ private fun getDirectoryFileCount(dir: File, countHiddenItems: Boolean): Int {
 }
 
 fun File.getDirectChildrenCount(countHiddenItems: Boolean) = listFiles()?.filter { if (countHiddenItems) true else !it.isHidden }?.size ?: 0
-
-fun File.toFileDirItem(context: Context) = FileDirItem(absolutePath, name, context.getIsPathDirectory(absolutePath), 0, length(), lastModified())
 
 fun File.containsNoMedia() = isDirectory && File(this, NOMEDIA).exists()
 

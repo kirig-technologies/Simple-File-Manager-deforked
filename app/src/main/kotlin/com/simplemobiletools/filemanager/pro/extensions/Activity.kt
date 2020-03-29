@@ -1,17 +1,16 @@
 package com.simplemobiletools.filemanager.pro.extensions
 
 import android.app.Activity
-import android.content.*
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
 import android.content.pm.ApplicationInfo
-import android.content.pm.PackageManager
-import android.media.RingtoneManager
 import android.net.Uri
 import android.os.TransactionTooLargeException
 import android.provider.DocumentsContract
-import android.provider.MediaStore
 import android.text.Html
 import android.view.View
-import android.view.ViewGroup
 import android.view.Window
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
@@ -19,25 +18,20 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.documentfile.provider.DocumentFile
-import com.simplemobiletools.filemanager.pro.dialogs.*
-import com.simplemobiletools.filemanager.pro.helpers.*
-import com.simplemobiletools.filemanager.pro.models.*
-import com.simplemobiletools.filemanager.pro.views.MyTextView
-import java.io.*
-import java.util.*
-import kotlin.collections.HashMap
-import android.content.Intent
 import androidx.core.content.FileProvider
-import com.simplemobiletools.filemanager.pro.extensions.*
-import com.simplemobiletools.filemanager.pro.helpers.isNougatPlus
 import com.simplemobiletools.filemanager.pro.BuildConfig
 import com.simplemobiletools.filemanager.pro.R
 import com.simplemobiletools.filemanager.pro.activities.BaseSimpleActivity
+import com.simplemobiletools.filemanager.pro.dialogs.WritePermissionDialog
 import com.simplemobiletools.filemanager.pro.helpers.*
+import com.simplemobiletools.filemanager.pro.models.FileDirItem
 import kotlinx.android.synthetic.main.dialog_title.view.*
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileNotFoundException
+import java.io.InputStream
 import java.util.*
+import kotlin.collections.HashMap
 
 fun Activity.sharePaths(paths: ArrayList<String>) {
     sharePathsIntent(paths, BuildConfig.APPLICATION_ID)
@@ -106,10 +100,6 @@ fun AppCompatActivity.updateActionBarTitle(text: String, color: Int = baseConfig
     supportActionBar?.title = Html.fromHtml("<font color='${color.getContrastColor().toHex()}'>$text</font>")
 }
 
-fun AppCompatActivity.updateActionBarSubtitle(text: String) {
-    supportActionBar?.subtitle = Html.fromHtml("<font color='${baseConfig.primaryColor.getContrastColor().toHex()}'>$text</font>")
-}
-
 fun Activity.appLaunched(appId: String) {
     baseConfig.internalStoragePath = getInternalStoragePath()
     updateSDCardPath()
@@ -124,13 +114,6 @@ fun Activity.appLaunched(appId: String) {
         baseConfig.defaultNavigationBarColor = window.navigationBarColor
         baseConfig.navigationBarColor = window.navigationBarColor
     }
-}
-
-fun Activity.isAppInstalledOnSDCard(): Boolean = try {
-    val applicationInfo = packageManager.getPackageInfo(packageName, 0).applicationInfo
-    (applicationInfo.flags and ApplicationInfo.FLAG_EXTERNAL_STORAGE) == ApplicationInfo.FLAG_EXTERNAL_STORAGE
-} catch (e: Exception) {
-    false
 }
 
 fun BaseSimpleActivity.isShowingSAFDialog(path: String): Boolean {
@@ -323,37 +306,6 @@ fun Activity.tryGenericMimeType(intent: Intent, mimeType: String, uri: Uri): Boo
     }
 }
 
-fun BaseSimpleActivity.deleteFolder(folder: FileDirItem, deleteMediaOnly: Boolean = true, callback: ((wasSuccess: Boolean) -> Unit)? = null) {
-    ensureBackgroundThread {
-        deleteFolderBg(folder, deleteMediaOnly, callback)
-    }
-}
-
-fun BaseSimpleActivity.deleteFolderBg(fileDirItem: FileDirItem, deleteMediaOnly: Boolean = true, callback: ((wasSuccess: Boolean) -> Unit)? = null) {
-    val folder = File(fileDirItem.path)
-    if (folder.exists()) {
-        val filesArr = folder.listFiles()
-        if (filesArr == null) {
-            runOnUiThread {
-                callback?.invoke(true)
-            }
-            return
-        }
-
-        val files = filesArr.toMutableList().filter { !deleteMediaOnly || it.isMediaFile() }
-        for (file in files) {
-            deleteFileBg(file.toFileDirItem(applicationContext), false) { }
-        }
-
-        if (folder.listFiles()?.isEmpty() == true) {
-            deleteFileBg(fileDirItem, true) { }
-        }
-    }
-    runOnUiThread {
-        callback?.invoke(true)
-    }
-}
-
 fun BaseSimpleActivity.deleteFiles(files: ArrayList<FileDirItem>, allowDeleteFolder: Boolean = false, callback: ((wasSuccess: Boolean) -> Unit)? = null) {
     ensureBackgroundThread {
         deleteFilesBg(files, allowDeleteFolder, callback)
@@ -438,16 +390,8 @@ private fun deleteRecursively(file: File): Boolean {
     return file.delete()
 }
 
-fun Activity.scanFileRecursively(file: File, callback: (() -> Unit)? = null) {
-    applicationContext.scanFileRecursively(file, callback)
-}
-
 fun Activity.scanPathRecursively(path: String, callback: (() -> Unit)? = null) {
     applicationContext.scanPathRecursively(path, callback)
-}
-
-fun Activity.scanFilesRecursively(files: ArrayList<File>, callback: (() -> Unit)? = null) {
-    applicationContext.scanFilesRecursively(files, callback)
 }
 
 fun Activity.scanPathsRecursively(paths: ArrayList<String>, callback: (() -> Unit)? = null) {
@@ -521,24 +465,6 @@ fun BaseSimpleActivity.renameFile(oldPath: String, newPath: String, callback: ((
             callback?.invoke(false)
         }
     }
-}
-
-fun Activity.hideKeyboard() {
-    val inputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-    inputMethodManager.hideSoftInputFromWindow((currentFocus ?: View(this)).windowToken, 0)
-    window!!.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
-    currentFocus?.clearFocus()
-}
-
-fun Activity.showKeyboard(et: EditText) {
-    et.requestFocus()
-    val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-    imm.showSoftInput(et, InputMethodManager.SHOW_IMPLICIT)
-}
-
-fun Activity.hideKeyboard(view: View) {
-    val inputMethodManager = getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-    inputMethodManager.hideSoftInputFromWindow(view.windowToken, 0)
 }
 
 fun BaseSimpleActivity.getFileInputStreamSync(path: String): InputStream? {

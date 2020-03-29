@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import com.simplemobiletools.filemanager.pro.R
 import com.simplemobiletools.filemanager.pro.activities.BaseSimpleActivity
 import com.simplemobiletools.filemanager.pro.extensions.*
 import com.simplemobiletools.filemanager.pro.helpers.ensureBackgroundThread
@@ -16,7 +17,6 @@ import com.simplemobiletools.filemanager.pro.helpers.isNougatPlus
 import com.simplemobiletools.filemanager.pro.helpers.sumByInt
 import com.simplemobiletools.filemanager.pro.helpers.sumByLong
 import com.simplemobiletools.filemanager.pro.models.FileDirItem
-import com.simplemobiletools.filemanager.pro.R
 import kotlinx.android.synthetic.main.dialog_properties.view.*
 import kotlinx.android.synthetic.main.property_item.view.*
 import java.util.*
@@ -150,7 +150,7 @@ class PropertiesDialog() {
      * A File Properties dialog constructor with an optional parameter, usable at multiple items selected
      *
      * @param activity request activity to avoid some Theme.AppCompat issues
-     * @param path the file path
+     * @param paths the file path
      * @param countHiddenItems toggle determining if we will count hidden files themselves and their sizes
      */
     constructor(activity: Activity, paths: List<String>, countHiddenItems: Boolean = false) : this() {

@@ -3,9 +3,9 @@ package com.simplemobiletools.filemanager.pro.helpers
 import android.content.Context
 import android.text.format.DateFormat
 import com.simplemobiletools.filemanager.pro.R
+import com.simplemobiletools.filemanager.pro.extensions.getInternalStoragePath
 import com.simplemobiletools.filemanager.pro.extensions.getSDCardPath
 import com.simplemobiletools.filemanager.pro.extensions.getSharedPrefs
-import com.simplemobiletools.filemanager.pro.extensions.getInternalStoragePath
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -183,7 +183,7 @@ open class BaseConfig(val context: Context) {
         get() = prefs.getBoolean(USE_ENGLISH, false)
         set(useEnglish) {
             wasUseEnglishToggled = true
-            prefs.edit().putBoolean(USE_ENGLISH, useEnglish).commit()
+            prefs.edit().putBoolean(USE_ENGLISH, useEnglish).apply()
         }
 
     var wasUseEnglishToggled: Boolean

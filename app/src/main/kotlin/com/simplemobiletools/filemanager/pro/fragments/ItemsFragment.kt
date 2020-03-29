@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.simplemobiletools.filemanager.pro.views.Breadcrumbs
 import com.simplemobiletools.filemanager.pro.R
 import com.simplemobiletools.filemanager.pro.activities.BaseSimpleActivity
 import com.simplemobiletools.filemanager.pro.activities.MainActivity
@@ -20,6 +19,7 @@ import com.simplemobiletools.filemanager.pro.helpers.ensureBackgroundThread
 import com.simplemobiletools.filemanager.pro.interfaces.ItemOperationsListener
 import com.simplemobiletools.filemanager.pro.models.FileDirItem
 import com.simplemobiletools.filemanager.pro.models.ListItem
+import com.simplemobiletools.filemanager.pro.views.Breadcrumbs
 import com.simplemobiletools.filemanager.pro.views.MyLinearLayoutManager
 import kotlinx.android.synthetic.main.items_fragment.view.*
 import java.io.File

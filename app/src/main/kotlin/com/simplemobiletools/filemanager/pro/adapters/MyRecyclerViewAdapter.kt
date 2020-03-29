@@ -10,11 +10,11 @@ import androidx.appcompat.view.ActionMode
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
 import com.simplemobiletools.filemanager.pro.R
+import com.simplemobiletools.filemanager.pro.activities.BaseSimpleActivity
 import com.simplemobiletools.filemanager.pro.extensions.baseConfig
 import com.simplemobiletools.filemanager.pro.interfaces.MyActionModeCallback
 import com.simplemobiletools.filemanager.pro.views.FastScroller
 import com.simplemobiletools.filemanager.pro.views.MyRecyclerView
-import com.simplemobiletools.filemanager.pro.activities.BaseSimpleActivity
 import java.util.*
 
 abstract class MyRecyclerViewAdapter(val activity: BaseSimpleActivity, val recyclerView: MyRecyclerView, val fastScroller: FastScroller? = null,

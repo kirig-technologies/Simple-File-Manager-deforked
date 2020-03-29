@@ -154,19 +154,6 @@ fun Context.hasProperStoredTreeUri(isOTG: Boolean): Boolean {
     return hasProperUri
 }
 
-fun Context.isAStorageRootFolder(path: String): Boolean {
-    val trimmed = path.trimEnd('/')
-    return trimmed.isEmpty() || trimmed.equals(internalStoragePath, true) || trimmed.equals(sdCardPath, true) || trimmed.equals(otgPath, true)
-}
-
-fun Context.getMyFileUri(file: File): Uri {
-    return if (isNougatPlus()) {
-        FileProvider.getUriForFile(this, "$packageName.provider", file)
-    } else {
-        Uri.fromFile(file)
-    }
-}
-
 fun Context.tryFastDocumentDelete(path: String, allowDeleteFolder: Boolean): Boolean {
     val document = getFastDocumentFile(path)
     return if (document?.isFile == true || allowDeleteFolder) {
@@ -233,20 +220,8 @@ fun Context.getDocumentFile(path: String): DocumentFile? {
 
 fun Context.getSomeDocumentFile(path: String) = getFastDocumentFile(path) ?: getDocumentFile(path)
 
-fun Context.scanFileRecursively(file: File, callback: (() -> Unit)? = null) {
-    scanFilesRecursively(arrayListOf(file), callback)
-}
-
 fun Context.scanPathRecursively(path: String, callback: (() -> Unit)? = null) {
     scanPathsRecursively(arrayListOf(path), callback)
-}
-
-fun Context.scanFilesRecursively(files: ArrayList<File>, callback: (() -> Unit)? = null) {
-    val allPaths = ArrayList<String>()
-    for (file in files) {
-        allPaths.addAll(getPaths(file))
-    }
-    rescanPaths(allPaths, callback)
 }
 
 fun Context.scanPathsRecursively(paths: ArrayList<String>, callback: (() -> Unit)? = null) {

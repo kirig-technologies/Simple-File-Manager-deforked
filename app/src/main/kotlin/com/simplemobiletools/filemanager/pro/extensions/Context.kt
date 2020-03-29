@@ -1,12 +1,10 @@
 package com.simplemobiletools.filemanager.pro.extensions
 
-import android.content.Context
-import com.simplemobiletools.filemanager.pro.helpers.Config
-
 import android.Manifest
 import android.app.Activity
 import android.content.ComponentName
 import android.content.ContentUris
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
@@ -15,7 +13,6 @@ import android.graphics.Color
 import android.graphics.Point
 import android.media.ExifInterface
 import android.media.MediaMetadataRetriever
-import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -32,14 +29,14 @@ import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.loader.content.CursorLoader
+import com.simplemobiletools.filemanager.pro.R
 import com.simplemobiletools.filemanager.pro.helpers.*
+import com.simplemobiletools.filemanager.pro.helpers.MyContentProvider.Companion.COL_APP_ICON_COLOR
 import com.simplemobiletools.filemanager.pro.helpers.MyContentProvider.Companion.COL_BACKGROUND_COLOR
 import com.simplemobiletools.filemanager.pro.helpers.MyContentProvider.Companion.COL_LAST_UPDATED_TS
 import com.simplemobiletools.filemanager.pro.helpers.MyContentProvider.Companion.COL_NAVIGATION_BAR_COLOR
 import com.simplemobiletools.filemanager.pro.helpers.MyContentProvider.Companion.COL_PRIMARY_COLOR
 import com.simplemobiletools.filemanager.pro.helpers.MyContentProvider.Companion.COL_TEXT_COLOR
-import com.simplemobiletools.filemanager.pro.helpers.MyContentProvider.Companion.COL_APP_ICON_COLOR
-import com.simplemobiletools.filemanager.pro.R
 import com.simplemobiletools.filemanager.pro.models.SharedTheme
 import java.io.File
 import java.text.SimpleDateFormat
@@ -47,25 +44,9 @@ import java.util.*
 
 fun Context.getSharedPrefs() = getSharedPreferences(PREFS_KEY, Context.MODE_PRIVATE)
 
-val Context.isRTLLayout: Boolean get() = resources.configuration.layoutDirection == View.LAYOUT_DIRECTION_RTL
-
-fun Context.getLinkTextColor(): Int {
-    return if (baseConfig.primaryColor == resources.getColor(R.color.color_primary)) {
-        baseConfig.primaryColor
-    } else {
-        baseConfig.textColor
-    }
-}
-
 fun Context.isBlackAndWhiteTheme() = baseConfig.textColor == Color.WHITE && baseConfig.primaryColor == Color.BLACK && baseConfig.backgroundColor == Color.BLACK
 
 fun Context.getAdjustedPrimaryColor() = if (isBlackAndWhiteTheme()) Color.WHITE else baseConfig.primaryColor
-
-fun Context.getFABIconColor() = if (isBlackAndWhiteTheme()) {
-    Color.BLACK
-} else {
-    baseConfig.primaryColor.getContrastColor()
-}
 
 fun Context.toast(id: Int, length: Int = Toast.LENGTH_SHORT) {
     toast(getString(id), length)
@@ -106,39 +87,6 @@ val Context.baseConfig: BaseConfig get() = BaseConfig.newInstance(this)
 val Context.sdCardPath: String get() = baseConfig.sdCardPath
 val Context.internalStoragePath: String get() = baseConfig.internalStoragePath
 val Context.otgPath: String get() = baseConfig.OTGPath
-
-
-fun Context.getLatestMediaId(uri: Uri = MediaStore.Files.getContentUri("external")): Long {
-    val MAX_VALUE = "max_value"
-    val projection = arrayOf("MAX(${BaseColumns._ID}) AS $MAX_VALUE")
-    var cursor: Cursor? = null
-    try {
-        cursor = contentResolver.query(uri, projection, null, null, null)
-        if (cursor?.moveToFirst() == true) {
-            return cursor.getLongValue(MAX_VALUE)
-        }
-    } catch (ignored: Exception) {
-    } finally {
-        cursor?.close()
-    }
-    return 0
-}
-
-fun Context.getLatestMediaByDateId(uri: Uri = MediaStore.Files.getContentUri("external")): Long {
-    val projection = arrayOf(BaseColumns._ID)
-    val sortOrder = "${MediaStore.Images.ImageColumns.DATE_TAKEN} DESC"
-    var cursor: Cursor? = null
-    try {
-        cursor = contentResolver.query(uri, projection, null, null, sortOrder)
-        if (cursor?.moveToFirst() == true) {
-            return cursor.getLongValue(BaseColumns._ID)
-        }
-    } catch (ignored: Exception) {
-    } finally {
-        cursor?.close()
-    }
-    return 0
-}
 
 // some helper functions were taken from https://github.com/iPaulPro/aFileChooser/blob/master/aFileChooser/src/com/ipaulpro/afilechooser/utils/FileUtils.java
 fun Context.getRealPathFromURI(uri: Uri): String? {
@@ -269,14 +217,6 @@ fun Context.getMediaContent(path: String, uri: Uri): Uri? {
     return null
 }
 
-fun Context.getFilenameFromUri(uri: Uri): String {
-    return if (uri.scheme == "file") {
-        File(uri.toString()).name
-    } else {
-        getFilenameFromContentUri(uri) ?: uri.lastPathSegment ?: ""
-    }
-}
-
 fun Context.getMimeTypeFromUri(uri: Uri): String {
     var mimetype = uri.path?.getMimeType() ?: ""
     if (mimetype.isEmpty()) {
@@ -303,15 +243,6 @@ fun Context.ensurePublicUri(path: String, applicationId: String): Uri? {
     }
 }
 
-fun Context.ensurePublicUri(uri: Uri, applicationId: String): Uri {
-    return if (uri.scheme == "content") {
-        uri
-    } else {
-        val file = File(uri.path)
-        getFilePublicUri(file, applicationId)
-    }
-}
-
 fun Context.getFilenameFromContentUri(uri: Uri): String? {
     var cursor: Cursor? = null
     try {
@@ -324,17 +255,6 @@ fun Context.getFilenameFromContentUri(uri: Uri): String? {
         cursor?.close()
     }
     return null
-}
-
-fun Context.getSharedTheme(callback: (sharedTheme: SharedTheme?) -> Unit) {
-    if (!isThankYouInstalled()) {
-        callback(null)
-    } else {
-        val cursorLoader = getMyContentProviderCursorLoader()
-        ensureBackgroundThread {
-            callback(getSharedThemeSync(cursorLoader))
-        }
-    }
 }
 
 fun Context.getSharedThemeSync(cursorLoader: CursorLoader): SharedTheme? {
@@ -351,14 +271,6 @@ fun Context.getSharedThemeSync(cursorLoader: CursorLoader): SharedTheme? {
         }
     }
     return null
-}
-
-fun Context.getMyContentProviderCursorLoader() = CursorLoader(this, MyContentProvider.MY_CONTENT_URI, null, null, null, null)
-
-
-fun Context.getCurrentFormattedDateTime(): String {
-    val simpleDateFormat = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.getDefault())
-    return simpleDateFormat.format(Date(System.currentTimeMillis()))
 }
 
 fun Context.updateSDCardPath() {
@@ -378,167 +290,6 @@ fun Context.getUriMimeType(path: String, newUri: Uri): String {
     }
     return mimeType
 }
-
-fun Context.isThankYouInstalled() = isPackageInstalled("com.simplemobiletools.thankyou")
-
-fun Context.isAProApp() = packageName.startsWith("com.simplemobiletools.") && packageName.removeSuffix(".debug").endsWith(".pro")
-
-fun Context.isPackageInstalled(pkgName: String): Boolean {
-    return try {
-        packageManager.getPackageInfo(pkgName, 0)
-        true
-    } catch (e: Exception) {
-        false
-    }
-}
-
-// format day bits to strings like "Mon, Tue, Wed"
-fun Context.getSelectedDaysString(bitMask: Int): String {
-    val dayBits = arrayListOf(MONDAY_BIT, TUESDAY_BIT, WEDNESDAY_BIT, THURSDAY_BIT, FRIDAY_BIT, SATURDAY_BIT, SUNDAY_BIT)
-    val weekDays = resources.getStringArray(R.array.week_days_short).toList() as ArrayList<String>
-
-    if (baseConfig.isSundayFirst) {
-        dayBits.moveLastItemToFront()
-        weekDays.moveLastItemToFront()
-    }
-
-    var days = ""
-    dayBits.forEachIndexed { index, bit ->
-        if (bitMask and bit != 0) {
-            days += "${weekDays[index]}, "
-        }
-    }
-    return days.trim().trimEnd(',')
-}
-
-fun Context.formatMinutesToTimeString(totalMinutes: Int) = formatSecondsToTimeString(totalMinutes * 60)
-
-fun Context.formatSecondsToTimeString(totalSeconds: Int): String {
-    val days = totalSeconds / DAY_SECONDS
-    val hours = (totalSeconds % DAY_SECONDS) / HOUR_SECONDS
-    val minutes = (totalSeconds % HOUR_SECONDS) / MINUTE_SECONDS
-    val seconds = totalSeconds % MINUTE_SECONDS
-    val timesString = StringBuilder()
-    if (days > 0) {
-        val daysString = String.format(resources.getQuantityString(R.plurals.days, days, days))
-        timesString.append("$daysString, ")
-    }
-
-    if (hours > 0) {
-        val hoursString = String.format(resources.getQuantityString(R.plurals.hours, hours, hours))
-        timesString.append("$hoursString, ")
-    }
-
-    if (minutes > 0) {
-        val minutesString = String.format(resources.getQuantityString(R.plurals.minutes, minutes, minutes))
-        timesString.append("$minutesString, ")
-    }
-
-    if (seconds > 0) {
-        val secondsString = String.format(resources.getQuantityString(R.plurals.seconds, seconds, seconds))
-        timesString.append(secondsString)
-    }
-
-    var result = timesString.toString().trim().trimEnd(',')
-    if (result.isEmpty()) {
-        result = String.format(resources.getQuantityString(R.plurals.minutes, 0, 0))
-    }
-    return result
-}
-
-fun Context.getFormattedMinutes(minutes: Int, showBefore: Boolean = true) = getFormattedSeconds(if (minutes <= 0) minutes else minutes * 60, showBefore)
-
-fun Context.getFormattedSeconds(seconds: Int, showBefore: Boolean = true) = when (seconds) {
-    -1 -> getString(R.string.no_reminder)
-    0 -> getString(R.string.at_start)
-    else -> {
-        when {
-            seconds % YEAR_SECONDS == 0 -> {
-                val base = if (showBefore) R.plurals.years_before else R.plurals.by_years
-                resources.getQuantityString(base, seconds / YEAR_SECONDS, seconds / YEAR_SECONDS)
-            }
-            seconds % MONTH_SECONDS == 0 -> {
-                val base = if (showBefore) R.plurals.months_before else R.plurals.by_months
-                resources.getQuantityString(base, seconds / MONTH_SECONDS, seconds / MONTH_SECONDS)
-            }
-            seconds % WEEK_SECONDS == 0 -> {
-                val base = if (showBefore) R.plurals.weeks_before else R.plurals.by_weeks
-                resources.getQuantityString(base, seconds / WEEK_SECONDS, seconds / WEEK_SECONDS)
-            }
-            seconds % DAY_SECONDS == 0 -> {
-                val base = if (showBefore) R.plurals.days_before else R.plurals.by_days
-                resources.getQuantityString(base, seconds / DAY_SECONDS, seconds / DAY_SECONDS)
-            }
-            seconds % HOUR_SECONDS == 0 -> {
-                val base = if (showBefore) R.plurals.hours_before else R.plurals.by_hours
-                resources.getQuantityString(base, seconds / HOUR_SECONDS, seconds / HOUR_SECONDS)
-            }
-            seconds % MINUTE_SECONDS == 0 -> {
-                val base = if (showBefore) R.plurals.minutes_before else R.plurals.by_minutes
-                resources.getQuantityString(base, seconds / MINUTE_SECONDS, seconds / MINUTE_SECONDS)
-            }
-            else -> {
-                val base = if (showBefore) R.plurals.seconds_before else R.plurals.by_seconds
-                resources.getQuantityString(base, seconds, seconds)
-            }
-        }
-    }
-}
-
-fun Context.getDefaultAlarmUri(type: Int) = RingtoneManager.getDefaultUri(if (type == ALARM_SOUND_TYPE_NOTIFICATION) RingtoneManager.TYPE_NOTIFICATION else RingtoneManager.TYPE_ALARM)
-
-
-fun Context.grantReadUriPermission(uriString: String) {
-    try {
-        // ensure custom reminder sounds play well
-        grantUriPermission("com.android.systemui", Uri.parse(uriString), Intent.FLAG_GRANT_READ_URI_PERMISSION)
-    } catch (ignored: Exception) {
-    }
-}
-
-@RequiresApi(Build.VERSION_CODES.N)
-fun Context.saveImageRotation(path: String, degrees: Int): Boolean {
-    if (!needsStupidWritePermissions(path)) {
-        saveExifRotation(ExifInterface(path), degrees)
-        return true
-    } else if (isNougatPlus()) {
-        val documentFile = getSomeDocumentFile(path)
-        if (documentFile != null) {
-            val parcelFileDescriptor = contentResolver.openFileDescriptor(documentFile.uri, "rw")
-            val fileDescriptor = parcelFileDescriptor!!.fileDescriptor
-            saveExifRotation(ExifInterface(fileDescriptor), degrees)
-            return true
-        }
-    }
-    return false
-}
-
-fun Context.saveExifRotation(exif: ExifInterface, degrees: Int) {
-    val orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
-    val orientationDegrees = (orientation.degreesFromOrientation() + degrees) % 360
-    exif.setAttribute(ExifInterface.TAG_ORIENTATION, orientationDegrees.orientationFromDegrees())
-    exif.saveAttributes()
-}
-
-fun Context.toggleAppIconColor(appId: String, colorIndex: Int, color: Int, enable: Boolean) {
-    val className = "${appId.removeSuffix(".debug")}.activities.SplashActivity${appIconColorStrings[colorIndex]}"
-    val state = if (enable) PackageManager.COMPONENT_ENABLED_STATE_ENABLED else PackageManager.COMPONENT_ENABLED_STATE_DISABLED
-    try {
-        packageManager.setComponentEnabledSetting(ComponentName(appId, className), state, PackageManager.DONT_KILL_APP)
-        if (enable) {
-            baseConfig.lastIconColor = color
-        }
-    } catch (e: Exception) {
-    }
-}
-
-fun Context.getLaunchIntent() = packageManager.getLaunchIntentForPackage(baseConfig.appId)
-
-fun Context.getCanAppBeUpgraded() = proPackages.contains(baseConfig.appId.removeSuffix(".debug").removePrefix("com.simplemobiletools."))
-
-fun Context.getProUrl() = "https://play.google.com/store/apps/details?id=${baseConfig.appId.removeSuffix(".debug")}.pro"
-
-fun Context.getStoreUrl() = "https://play.google.com/store/apps/details?id=${packageName.removeSuffix(".debug")}"
 
 fun Context.getTimeFormat() = if (baseConfig.use24HourFormat) TIME_FORMAT_24 else TIME_FORMAT_12
 
@@ -578,8 +329,6 @@ fun Context.getVideoResolution(path: String): Point? {
     return point
 }
 
-fun Context.getStringsPackageName() = getString(R.string.package_name)
-
 fun Context.getTextSize() = when (baseConfig.fontSize) {
     FONT_SIZE_SMALL -> resources.getDimension(R.dimen.smaller_text_size)
     FONT_SIZE_MEDIUM -> resources.getDimension(R.dimen.bigger_text_size)
@@ -588,11 +337,8 @@ fun Context.getTextSize() = when (baseConfig.fontSize) {
 }
 
 val Context.windowManager: WindowManager get() = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-val Context.portrait get() = resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
 val Context.navigationBarRight: Boolean get() = usableScreenSize.x < realScreenSize.x
 val Context.navigationBarBottom: Boolean get() = usableScreenSize.y < realScreenSize.y
-val Context.navigationBarHeight: Int get() = if (navigationBarBottom) navigationBarSize.y else 0
-val Context.navigationBarWidth: Int get() = if (navigationBarRight) navigationBarSize.x else 0
 
 val Context.navigationBarSize: Point
     get() = when {
@@ -610,25 +356,6 @@ val Context.newNavigationBarHeight: Int
         }
         return navigationBarHeight
     }
-
-val Context.statusBarHeight: Int
-    get() {
-        var statusBarHeight = 0
-        val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
-        if (resourceId > 0) {
-            statusBarHeight = resources.getDimensionPixelSize(resourceId)
-        }
-        return statusBarHeight
-    }
-
-val Context.actionBarHeight: Int
-    get() {
-        val styledAttributes = theme.obtainStyledAttributes(intArrayOf(android.R.attr.actionBarSize))
-        val actionBarHeight = styledAttributes.getDimension(0, 0f)
-        styledAttributes.recycle()
-        return actionBarHeight.toInt()
-    }
-
 
 val Context.usableScreenSize: Point
     get() {

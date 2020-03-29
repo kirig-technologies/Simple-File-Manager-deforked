@@ -1,8 +1,8 @@
 package com.simplemobiletools.filemanager.pro.models
 
 import android.content.Context
-import com.simplemobiletools.filemanager.pro.helpers.*
 import com.simplemobiletools.filemanager.pro.extensions.*
+import com.simplemobiletools.filemanager.pro.helpers.*
 import java.io.File
 
 open class FileDirItem(val path: String, val name: String = "", var isDirectory: Boolean = false, var children: Int = 0, var size: Long = 0L, var modified: Long = 0L) :
@@ -91,8 +91,6 @@ open class FileDirItem(val path: String, val name: String = "", var isDirectory:
 
     fun getDuration() = path.getDuration()
 
-    fun getFileDurationSeconds() = path.getFileDurationSeconds()
-
     fun getArtist() = path.getFileArtist()
 
     fun getAlbum() = path.getFileAlbum()
@@ -100,10 +98,4 @@ open class FileDirItem(val path: String, val name: String = "", var isDirectory:
     fun getSongTitle() = path.getFileSongTitle()
 
     fun getResolution(context: Context) = context.getResolution(path)
-
-    fun getVideoResolution(context: Context) = context.getVideoResolution(path)
-
-    fun getImageResolution() = path.getImageResolution()
-
-    fun getPublicUri(context: Context) = context.getDocumentFile(path)?.uri ?: ""
 }

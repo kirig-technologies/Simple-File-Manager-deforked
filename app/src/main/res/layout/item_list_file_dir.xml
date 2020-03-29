@@ -12,7 +12,6 @@
     android:paddingBottom="@dimen/tiny_margin">
 
     <RelativeLayout
-        android:id="@+id/item_holder"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingEnd="@dimen/activity_margin">
