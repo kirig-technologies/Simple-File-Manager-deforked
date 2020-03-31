@@ -51,10 +51,6 @@ abstract class BaseSimpleActivity : AppCompatActivity() {
         return true
     }
 
-    fun updateStatusbarColor(color: Int) {
-        window.statusBarColor = color.darkenColor()
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
         super.onActivityResult(requestCode, resultCode, resultData)
         val partition = try {
