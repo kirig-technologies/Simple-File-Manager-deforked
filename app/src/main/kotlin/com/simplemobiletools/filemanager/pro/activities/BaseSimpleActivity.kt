@@ -31,8 +31,6 @@ abstract class BaseSimpleActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        updateActionbarColor()
-        updateNavigationBarColor()
     }
 
     override fun onStop() {
@@ -53,24 +51,8 @@ abstract class BaseSimpleActivity : AppCompatActivity() {
         return true
     }
 
-    fun updateActionbarColor(color: Int = baseConfig.primaryColor) {
-        supportActionBar?.setBackgroundDrawable(ColorDrawable(color))
-        updateActionBarTitle(supportActionBar?.title.toString(), color)
-        updateStatusbarColor(color)
-        setTaskDescription(ActivityManager.TaskDescription(null, null, color))
-    }
-
     fun updateStatusbarColor(color: Int) {
         window.statusBarColor = color.darkenColor()
-    }
-
-    fun updateNavigationBarColor(color: Int = baseConfig.navigationBarColor) {
-        if (baseConfig.navigationBarColor != INVALID_NAVIGATION_BAR_COLOR) {
-            try {
-                window.navigationBarColor = color
-            } catch (ignored: Exception) {
-            }
-        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {

@@ -77,11 +77,6 @@ fun Activity.appLaunched(appId: String) {
     baseConfig.internalStoragePath = getInternalStoragePath()
     updateSDCardPath()
     baseConfig.appId = appId
-
-    if (baseConfig.navigationBarColor == INVALID_NAVIGATION_BAR_COLOR && (window.attributes.flags and WindowManager.LayoutParams.FLAG_FULLSCREEN == 0)) {
-        baseConfig.defaultNavigationBarColor = window.navigationBarColor
-        baseConfig.navigationBarColor = window.navigationBarColor
-    }
 }
 
 fun BaseSimpleActivity.isShowingSAFDialog(path: String): Boolean {

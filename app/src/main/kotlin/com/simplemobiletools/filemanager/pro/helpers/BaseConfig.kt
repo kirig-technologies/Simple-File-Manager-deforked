@@ -43,30 +43,11 @@ open class BaseConfig(val context: Context) {
 
     private fun getDefaultInternalPath() = if (prefs.contains(INTERNAL_STORAGE_PATH)) "" else context.getInternalStoragePath()
 
-    var textColor: Int
-        get() = prefs.getInt(TEXT_COLOR, context.resources.getColor(R.color.default_text_color))
-        set(textColor) = prefs.edit().putInt(TEXT_COLOR, textColor).apply()
+    var textColor: Int = context.resources.getColor(R.color.default_text_color)
 
-    var backgroundColor: Int
-        get() = prefs.getInt(BACKGROUND_COLOR, context.resources.getColor(R.color.default_background_color))
-        set(backgroundColor) = prefs.edit().putInt(BACKGROUND_COLOR, backgroundColor).apply()
+    var backgroundColor: Int = context.resources.getColor(R.color.default_background_color)
 
-    var primaryColor: Int
-        get() = prefs.getInt(PRIMARY_COLOR, context.resources.getColor(R.color.color_primary))
-        set(primaryColor) = prefs.edit().putInt(PRIMARY_COLOR, primaryColor).apply()
-
-    var navigationBarColor: Int
-        get() = prefs.getInt(NAVIGATION_BAR_COLOR, INVALID_NAVIGATION_BAR_COLOR)
-        set(navigationBarColor) = prefs.edit().putInt(NAVIGATION_BAR_COLOR, navigationBarColor).apply()
-
-    var defaultNavigationBarColor: Int
-        get() = prefs.getInt(DEFAULT_NAVIGATION_BAR_COLOR, INVALID_NAVIGATION_BAR_COLOR)
-        set(defaultNavigationBarColor) = prefs.edit().putInt(DEFAULT_NAVIGATION_BAR_COLOR, defaultNavigationBarColor).apply()
-
-    // whole app launch protection
-    var isAppPasswordProtectionOn: Boolean
-        get() = prefs.getBoolean(APP_PASSWORD_PROTECTION, false)
-        set(isAppPasswordProtectionOn) = prefs.edit().putBoolean(APP_PASSWORD_PROTECTION, isAppPasswordProtectionOn).apply()
+    var primaryColor: Int = context.resources.getColor(R.color.color_primary)
 
     var keepLastModified: Boolean
         get() = prefs.getBoolean(KEEP_LAST_MODIFIED, true)

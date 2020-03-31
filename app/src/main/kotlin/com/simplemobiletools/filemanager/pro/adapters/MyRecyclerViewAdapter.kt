@@ -22,9 +22,7 @@ abstract class MyRecyclerViewAdapter(val activity: BaseSimpleActivity, val recyc
     protected val baseConfig = activity.baseConfig
     protected val resources = activity.resources!!
     protected val layoutInflater = activity.layoutInflater
-    protected var primaryColor = baseConfig.primaryColor
     protected var textColor = baseConfig.textColor
-    protected var backgroundColor = baseConfig.backgroundColor
     protected var actModeCallback: MyActionModeCallback
     protected var selectedKeys = LinkedHashSet<Int>()
     protected var positionOffset = 0
@@ -256,19 +254,6 @@ abstract class MyRecyclerViewAdapter(val activity: BaseSimpleActivity, val recyc
 
     fun finishActMode() {
         actMode?.finish()
-    }
-
-    fun updateTextColor(textColor: Int) {
-        this.textColor = textColor
-        notifyDataSetChanged()
-    }
-
-    fun updatePrimaryColor(primaryColor: Int) {
-        this.primaryColor = primaryColor
-    }
-
-    fun updateBackgroundColor(backgroundColor: Int) {
-        this.backgroundColor = backgroundColor
     }
 
     protected fun createViewHolder(layoutType: Int, parent: ViewGroup?): ViewHolder {

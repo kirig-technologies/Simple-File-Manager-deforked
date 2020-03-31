@@ -18,7 +18,6 @@ import com.simplemobiletools.filemanager.pro.dialogs.ChangeSortingDialog
 import com.simplemobiletools.filemanager.pro.extensions.*
 import com.simplemobiletools.filemanager.pro.fragments.ItemsFragment
 import com.simplemobiletools.filemanager.pro.helpers.PERMISSION_WRITE_STORAGE
-import com.simplemobiletools.filemanager.pro.helpers.WAS_PROTECTION_HANDLED
 import com.simplemobiletools.filemanager.pro.helpers.ensureBackgroundThread
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.items_fragment.view.*
@@ -30,8 +29,6 @@ class MainActivity : BaseSimpleActivity() {
     private val PICKED_PATH = "picked_path"
     private var isSearchOpen = false
     private var wasBackJustPressed = false
-    private var mIsPasswordProtectionPending = false
-    private var mWasProtectionHandled = false
     private var searchMenuItem: MenuItem? = null
 
     private lateinit var fragment: ItemsFragment
@@ -40,7 +37,6 @@ class MainActivity : BaseSimpleActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         appLaunched(BuildConfig.APPLICATION_ID)
-        mIsPasswordProtectionPending = config.isAppPasswordProtectionOn
 
         fragment = (fragment_holder as ItemsFragment).apply {
             isGetRingtonePicker = intent.action == RingtoneManager.ACTION_RINGTONE_PICKER
@@ -97,12 +93,10 @@ class MainActivity : BaseSimpleActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString(PICKED_PATH, (fragment_holder as ItemsFragment).currentPath)
-        outState.putBoolean(WAS_PROTECTION_HANDLED, mWasProtectionHandled)
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
-        mWasProtectionHandled = savedInstanceState.getBoolean(WAS_PROTECTION_HANDLED, false)
         val path = savedInstanceState.getString(PICKED_PATH) ?: internalStoragePath
         openPath(path, true)
     }
@@ -187,10 +181,6 @@ class MainActivity : BaseSimpleActivity() {
     }
 
     private fun openPath(path: String, forceRefresh: Boolean = false) {
-        if (mIsPasswordProtectionPending && !mWasProtectionHandled) {
-            return
-        }
-
         var newPath = path
         val file = File(path)
         if (config.OTGPath.isNotEmpty() && config.OTGPath == path.trimEnd('/')) {
