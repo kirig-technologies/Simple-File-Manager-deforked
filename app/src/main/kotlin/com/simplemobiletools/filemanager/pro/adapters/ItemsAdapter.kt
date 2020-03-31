@@ -28,8 +28,13 @@ import kotlinx.android.synthetic.main.item_list_section.view.*
 import java.io.File
 import java.util.*
 
-class ItemsAdapter(activity: BaseSimpleActivity, var listItems: MutableList<ListItem>, val listener: ItemOperationsListener?, recyclerView: MyRecyclerView,
-                   val isPickMultipleIntent: Boolean, fastScroller: FastScroller, itemClick: (Any) -> Unit) :
+class ItemsAdapter(activity: BaseSimpleActivity,
+                   var listItems: MutableList<ListItem>,
+                   val listener: ItemOperationsListener?,
+                   recyclerView: MyRecyclerView,
+                   val isPickMultipleIntent: Boolean,
+                   fastScroller: FastScroller,
+                   itemClick: (Any) -> Unit) :
         MyRecyclerViewAdapter(activity, recyclerView, fastScroller, itemClick) {
 
     private val TYPE_FILE_DIR = 1
@@ -56,8 +61,6 @@ class ItemsAdapter(activity: BaseSimpleActivity, var listItems: MutableList<List
         menu.apply {
             findItem(R.id.cab_confirm_selection).isVisible = isPickMultipleIntent
             findItem(R.id.cab_copy_path).isVisible = isOneItemSelected()
-
-            checkHideBtnVisibility(this)
         }
     }
 
@@ -70,8 +73,6 @@ class ItemsAdapter(activity: BaseSimpleActivity, var listItems: MutableList<List
             R.id.cab_confirm_selection -> confirmSelection()
             R.id.cab_properties -> showProperties()
             R.id.cab_share -> shareFiles()
-            R.id.cab_hide -> toggleFileVisibility(true)
-            R.id.cab_unhide -> toggleFileVisibility(false)
             R.id.cab_copy_path -> copyPath()
             R.id.cab_select_all -> selectAll()
         }
@@ -121,21 +122,6 @@ class ItemsAdapter(activity: BaseSimpleActivity, var listItems: MutableList<List
         fileDrawable.alpha = 180
     }
 
-    private fun checkHideBtnVisibility(menu: Menu) {
-        var hiddenCnt = 0
-        var unhiddenCnt = 0
-        getSelectedFileDirItems().map { it.name }.forEach {
-            if (it.startsWith(".")) {
-                hiddenCnt++
-            } else {
-                unhiddenCnt++
-            }
-        }
-
-        menu.findItem(R.id.cab_hide).isVisible = unhiddenCnt > 0
-        menu.findItem(R.id.cab_unhide).isVisible = hiddenCnt > 0
-    }
-
     private fun confirmSelection() {
         if (selectedKeys.isNotEmpty()) {
             val paths = getSelectedFileDirItems().asSequence().filter { !it.isDirectory }.map { it.path }.toMutableList() as ArrayList<String>
@@ -163,18 +149,6 @@ class ItemsAdapter(activity: BaseSimpleActivity, var listItems: MutableList<List
             addFileUris(it.path, paths)
         }
         activity.sharePaths(paths)
-    }
-
-    private fun toggleFileVisibility(hide: Boolean) {
-        ensureBackgroundThread {
-            getSelectedFileDirItems().forEach {
-                activity.toggleItemVisibility(it.path, hide)
-            }
-            activity.runOnUiThread {
-                listener?.refreshItems()
-                finishActMode()
-            }
-        }
     }
 
     private fun addFileUris(path: String, paths: ArrayList<String>) {

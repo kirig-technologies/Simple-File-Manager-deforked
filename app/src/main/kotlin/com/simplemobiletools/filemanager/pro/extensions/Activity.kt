@@ -69,29 +69,6 @@ private fun getMimeType(type: Int) = when (type) {
     else -> "*/*"
 }
 
-fun BaseSimpleActivity.toggleItemVisibility(oldPath: String, hide: Boolean, callback: ((newPath: String) -> Unit)? = null) {
-    val path = oldPath.getParentPath()
-    var filename = oldPath.getFilenameFromPath()
-    if ((hide && filename.startsWith('.')) || (!hide && !filename.startsWith('.'))) {
-        callback?.invoke(oldPath)
-        return
-    }
-
-    filename = if (hide) {
-        ".${filename.trimStart('.')}"
-    } else {
-        filename.substring(1, filename.length)
-    }
-
-    val newPath = "$path/$filename"
-    if (oldPath != newPath) {
-        renameFile(oldPath, newPath) {
-            callback?.invoke(newPath)
-        }
-    }
-}
-
-
 fun AppCompatActivity.updateActionBarTitle(text: String, color: Int = baseConfig.primaryColor) {
     supportActionBar?.title = Html.fromHtml("<font color='${color.getContrastColor().toHex()}'>$text</font>")
 }
