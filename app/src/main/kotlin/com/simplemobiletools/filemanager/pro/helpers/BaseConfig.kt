@@ -49,10 +49,6 @@ open class BaseConfig(val context: Context) {
 
     var primaryColor: Int = context.resources.getColor(R.color.color_primary)
 
-    var keepLastModified: Boolean
-        get() = prefs.getBoolean(KEEP_LAST_MODIFIED, true)
-        set(keepLastModified) = prefs.edit().putBoolean(KEEP_LAST_MODIFIED, keepLastModified).apply()
-
     var sorting: Int
         get() = prefs.getInt(SORT_ORDER, context.resources.getInteger(R.integer.default_sorting))
         set(sorting) = prefs.edit().putInt(SORT_ORDER, sorting).apply()

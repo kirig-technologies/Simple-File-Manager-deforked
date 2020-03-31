@@ -7,11 +7,9 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.TransactionTooLargeException
-import android.provider.DocumentsContract
 import android.text.Html
 import android.view.View
 import android.view.Window
-import android.view.WindowManager
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -24,7 +22,6 @@ import com.simplemobiletools.filemanager.pro.helpers.*
 import kotlinx.android.synthetic.main.dialog_title.view.*
 import java.io.File
 import java.io.FileInputStream
-import java.io.FileNotFoundException
 import java.io.InputStream
 import java.util.*
 import kotlin.collections.HashMap
@@ -266,83 +263,6 @@ fun Activity.tryGenericMimeType(intent: Intent, mimeType: String, uri: Uri): Boo
         true
     } else {
         false
-    }
-}
-
-fun Activity.scanPathRecursively(path: String, callback: (() -> Unit)? = null) {
-    applicationContext.scanPathRecursively(path, callback)
-}
-
-fun Activity.scanPathsRecursively(paths: ArrayList<String>, callback: (() -> Unit)? = null) {
-    applicationContext.scanPathsRecursively(paths, callback)
-}
-
-fun Activity.rescanPaths(paths: ArrayList<String>, callback: (() -> Unit)? = null) {
-    applicationContext.rescanPaths(paths, callback)
-}
-
-fun BaseSimpleActivity.renameFile(oldPath: String, newPath: String, callback: ((success: Boolean) -> Unit)? = null) {
-    if (needsStupidWritePermissions(newPath)) {
-        handleSAFDialog(newPath) {
-            if (!it) {
-                return@handleSAFDialog
-            }
-
-            val document = getSomeDocumentFile(oldPath)
-            if (document == null || (File(oldPath).isDirectory != document.isDirectory)) {
-                runOnUiThread {
-                    callback?.invoke(false)
-                }
-                return@handleSAFDialog
-            }
-
-            try {
-                try {
-                    DocumentsContract.renameDocument(applicationContext.contentResolver, document.uri, newPath.getFilenameFromPath())
-                } catch (ignored: FileNotFoundException) {
-                    // FileNotFoundException is thrown in some weird cases, but renaming works just fine
-                }
-                updateInMediaStore(oldPath, newPath)
-                rescanPaths(arrayListOf(oldPath, newPath)) {
-                    if (!baseConfig.keepLastModified) {
-                        updateLastModified(newPath, System.currentTimeMillis())
-                    }
-                    deleteFromMediaStore(oldPath)
-                    runOnUiThread {
-                        callback?.invoke(true)
-                    }
-                }
-            } catch (e: Exception) {
-                showErrorToast(e)
-                runOnUiThread {
-                    callback?.invoke(false)
-                }
-            }
-        }
-    } else if (File(oldPath).renameTo(File(newPath))) {
-        if (File(newPath).isDirectory) {
-            deleteFromMediaStore(oldPath)
-            rescanPaths(arrayListOf(newPath)) {
-                runOnUiThread {
-                    callback?.invoke(true)
-                }
-                scanPathRecursively(newPath)
-            }
-        } else {
-            if (!baseConfig.keepLastModified) {
-                File(newPath).setLastModified(System.currentTimeMillis())
-            }
-            deleteFromMediaStore(oldPath)
-            scanPathsRecursively(arrayListOf(newPath)) {
-                runOnUiThread {
-                    callback?.invoke(true)
-                }
-            }
-        }
-    } else {
-        runOnUiThread {
-            callback?.invoke(false)
-        }
     }
 }
 
